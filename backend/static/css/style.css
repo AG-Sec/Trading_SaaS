@@ -1,0 +1,302 @@
+/* Main Styling for Trading SaaS Platform */
+
+/* General Styling */
+:root {
+  --primary-color: #0d6efd;
+  --secondary-color: #6c757d;
+  --success-color: #198754;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #0dcaf0;
+  
+  /* Regime-specific colors */
+  --bullish-trending: #28a745;
+  --bearish-trending: #dc3545;
+  --high-volatility: #fd7e14;
+  --low-volatility: #17a2b8;
+  --bullish-breakout: #7952b3;
+  --bearish-breakout: #d63384;
+  --neutral-ranging: #6c757d;
+}
+
+/* Dark Mode Theming */
+[data-bs-theme=dark] {
+  --bs-body-color: #dee2e6;
+  --bs-body-color-rgb: 222, 226, 230;
+  --bs-body-bg: #212529;
+  --bs-body-bg-rgb: 33, 37, 41;
+  --bs-tertiary-bg: rgba(71, 71, 71, 0.5);
+  
+  /* Card styling for dark mode */
+  --bs-card-bg: #343a40;
+  --bs-card-border-color: rgba(255, 255, 255, 0.125);
+}
+
+/* Card enhancements */
+.card {
+  transition: all 0.3s ease-in-out;
+  margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+}
+
+/* Regime color indicators */
+.regime-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.regime-bullish-trending {
+  background-color: var(--bullish-trending);
+}
+
+.regime-bearish-trending {
+  background-color: var(--bearish-trending);
+}
+
+.regime-high-volatility {
+  background-color: var(--high-volatility);
+}
+
+.regime-low-volatility {
+  background-color: var(--low-volatility);
+}
+
+.regime-bullish-breakout {
+  background-color: var(--bullish-breakout);
+}
+
+.regime-bearish-breakout {
+  background-color: var(--bearish-breakout);
+}
+
+.regime-neutral-ranging {
+  background-color: var(--neutral-ranging);
+}
+
+/* Tables */
+.table-responsive {
+  margin-bottom: 1.5rem;
+}
+
+.table thead th {
+  border-top: none;
+  font-weight: 600;
+}
+
+.table-borderless tbody + tbody {
+  border-top-width: 0;
+}
+
+/* Dashboard metrics */
+.metrics-card {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.metrics-card .metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.metrics-card .metric-label {
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  color: var(--secondary-color);
+}
+
+/* Asset selector */
+.asset-selector {
+  background-color: var(--bs-card-bg);
+  border: 1px solid var(--bs-card-border-color);
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Regime strength indicator */
+.strength-indicator {
+  height: 6px;
+  width: 100%;
+  background-color: var(--secondary-color);
+  border-radius: 3px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.strength-indicator-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Loader */
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.loader {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid var(--primary-color);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dashboard widgets */
+.widget {
+  margin-bottom: 2rem;
+}
+
+.widget-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--bs-card-border-color);
+}
+
+/* Chart containers */
+.chart-container {
+  position: relative;
+  height: 300px;
+  margin-bottom: 20px;
+}
+
+/* Responsive utilities */
+@media (max-width: 767.98px) {
+  .metrics-card .metric-value {
+    font-size: 1.5rem;
+  }
+  
+  .chart-container {
+    height: 250px;
+  }
+}
+
+/* Optimize page */
+.feature-importance-bar {
+  height: 20px;
+  background-color: var(--primary-color);
+  margin-bottom: 5px;
+  border-radius: 3px;
+}
+
+.threshold-slider {
+  width: 100%;
+}
+
+/* Notification styling */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 350px;
+  padding: 15px 20px;
+  background-color: var(--bs-card-bg);
+  border-left: 4px solid var(--success-color);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  z-index: 1050;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s ease-in-out;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification-title {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.notification-message {
+  margin-bottom: 0;
+}
+
+.notification-bullish {
+  border-left-color: var(--bullish-trending);
+}
+
+.notification-bearish {
+  border-left-color: var(--bearish-trending);
+}
+
+.notification-volatility {
+  border-left-color: var(--high-volatility);
+}
+
+.notification-info {
+  border-left-color: var(--info-color);
+}
+
+/* Tab content styling */
+.tab-content {
+  padding: 20px 15px;
+  background-color: var(--bs-card-bg);
+  border: 1px solid var(--bs-card-border-color);
+  border-top: none;
+  border-bottom-left-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+}
+
+/* Strategy cards */
+.strategy-card {
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.strategy-card.selected {
+  border-color: var(--primary-color);
+}
+
+/* Image thumbnails */
+.regime-thumbnail {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+/* Form elements */
+.form-label {
+  font-weight: 500;
+}
+
+.form-text {
+  font-size: 0.875rem;
+  color: var(--secondary-color);
+}
+
+/* Navbar active state */
+.nav-link.active {
+  font-weight: bold;
+  color: var(--primary-color);
+}

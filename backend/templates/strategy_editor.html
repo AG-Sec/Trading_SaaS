@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Monaco Editor CSS & JS -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .strategy-editor-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .editor-panel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .editor-container {
+            height: 500px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .preview-panel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .nav-tabs {
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .nav-tabs .nav-link {
+            margin-bottom: -1px;
+            border: 1px solid transparent;
+            border-top-left-radius: 0.25rem;
+            border-top-right-radius: 0.25rem;
+        }
+        .nav-tabs .nav-link.active {
+            color: #495057;
+            background-color: #fff;
+            border-color: #dee2e6 #dee2e6 #fff;
+        }
+        .tab-content {
+            padding: 15px;
+        }
+        .backtest-form {
+            margin-bottom: 20px;
+        }
+        .backtest-results {
+            margin-top: 20px;
+        }
+        .preset-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 15px;
+        }
+        .preset-card:hover {
+            transform: translateY(-5px);
+        }
+        .preset-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .preset-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .code-preview {
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container strategy-editor-container">
+        <h1 class="mb-4">Strategy Editor</h1>
+        
+        <!-- Alert for messages -->
+        <div id="alert-container" style="display: none;" class="alert alert-success mb-4"></div>
+        
+        <div class="row">
+            <!-- Editor panel - Left side -->
+            <div class="col-lg-7">
+                <div class="editor-panel">
+                    <ul class="nav nav-tabs" id="editorTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="editor-tab" data-bs-toggle="tab" data-bs-target="#editor-content" type="button" role="tab" aria-controls="editor-content" aria-selected="true">DSL Editor</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="presets-tab" data-bs-toggle="tab" data-bs-target="#presets-content" type="button" role="tab" aria-controls="presets-content" aria-selected="false">Strategy Presets</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="code-tab" data-bs-toggle="tab" data-bs-target="#code-content" type="button" role="tab" aria-controls="code-content" aria-selected="false">Python Code</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="editorTabsContent">
+                        <!-- DSL Editor Tab -->
+                        <div class="tab-pane fade show active" id="editor-content" role="tabpanel" aria-labelledby="editor-tab">
+                            <div id="editor-container" class="editor-container"></div>
+                            <div class="d-flex justify-content-between mt-3">
+                                <div>
+                                    <button id="validate-btn" class="btn btn-outline-primary me-2">
+                                        <i class="bi bi-check-circle"></i> Validate
+                                    </button>
+                                    <button id="generate-code-btn" class="btn btn-outline-secondary me-2">
+                                        <i class="bi bi-code-slash"></i> Generate Code
+                                    </button>
+                                </div>
+                                <div>
+                                    <button id="save-btn" class="btn btn-primary">
+                                        <i class="bi bi-save"></i> Save Strategy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Strategy Presets Tab -->
+                        <div class="tab-pane fade" id="presets-content" role="tabpanel" aria-labelledby="presets-tab">
+                            <h3 class="mb-3">Strategy Presets</h3>
+                            <p>Choose from pre-built strategy templates to get started quickly.</p>
+                            <div id="presets-container" class="row">
+                                <!-- Presets will be loaded here via JavaScript -->
+                                <div class="d-flex justify-content-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Python Code Preview Tab -->
+                        <div class="tab-pane fade" id="code-content" role="tabpanel" aria-labelledby="code-tab">
+                            <h3 class="mb-3">Generated Python Code</h3>
+                            <p>This is the Python code that will be generated from your DSL.</p>
+                            <pre id="code-preview" class="code-preview">No code generated yet. Click "Generate Code" button to preview the Python implementation.</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preview & Backtest panel - Right side -->
+            <div class="col-lg-5">
+                <div class="preview-panel">
+                    <h3 class="mb-3">Backtest Strategy</h3>
+                    <p>Test your strategy against historical data.</p>
+                    
+                    <form id="backtest-form" class="backtest-form">
+                        <div class="mb-3">
+                            <label for="asset-select" class="form-label">Asset</label>
+                            <select id="asset-select" class="form-select" required>
+                                <option value="">Select Asset</option>
+                                <option value="BTC-USD">Bitcoin (BTC-USD)</option>
+                                <option value="ETH-USD">Ethereum (ETH-USD)</option>
+                                <option value="SPY">S&P 500 ETF (SPY)</option>
+                                <option value="EURUSD=X">EUR/USD Forex</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="timeframe-select" class="form-label">Timeframe</label>
+                            <select id="timeframe-select" class="form-select" required>
+                                <option value="">Select Timeframe</option>
+                                <option value="15m">15 Minutes</option>
+                                <option value="1h">1 Hour</option>
+                                <option value="4h">4 Hours</option>
+                                <option value="1d">1 Day</option>
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="start-date" class="form-label">Start Date</label>
+                                <input type="date" id="start-date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="end-date" class="form-label">End Date</label>
+                                <input type="date" id="end-date" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" id="backtest-btn" class="btn btn-primary">
+                                <i class="bi bi-bar-chart"></i> Run Backtest
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Backtest Results -->
+                    <div id="backtest-results" class="backtest-results" style="display: none;">
+                        <h4 class="mb-3">Backtest Results</h4>
+                        
+                        <!-- Summary Cards -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-2">
+                                <div class="card">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-subtitle mb-1 text-muted">Total Return</h6>
+                                        <h4 id="total-return" class="card-title mb-0">0.00%</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="card">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-subtitle mb-1 text-muted">Win Rate</h6>
+                                        <h4 id="win-rate" class="card-title mb-0">0.00%</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="card">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-subtitle mb-1 text-muted">Profit Factor</h6>
+                                        <h4 id="profit-factor" class="card-title mb-0">0.00</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="card">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-subtitle mb-1 text-muted">Max Drawdown</h6>
+                                        <h4 id="max-drawdown" class="card-title mb-0">0.00%</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Equity Curve Chart -->
+                        <div class="mb-3">
+                            <h5>Equity Curve</h5>
+                            <div id="equity-chart" style="height: 250px;"></div>
+                        </div>
+                        
+                        <!-- Additional Metrics Table -->
+                        <h5>Additional Metrics</h5>
+                        <table class="table table-sm">
+                            <tbody id="metrics-table">
+                                <!-- Metrics will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JavaScript Libraries -->    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    
+    <!-- Monaco Editor -->    
+    <script>var require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' } };</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.nls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.js"></script>
+    
+    <script>
+        // Global variables
+        let editor;
+        let currentStrategyId = null;
+        let backtestChart = null;
+        
+        // Default DSL template
+        const DEFAULT_DSL = `strategy_name: my_custom_strategy
+rules:
+  - if: ema(9) > ema(21)
+    and: rsi(14) < 70
+    then: signal = "long"
+  - if: ema(9) < ema(21)
+    and: rsi(14) > 30
+    then: signal = "short"
+risk:
+  entry_size_pct: 1.0
+  stop: atr(14) * 1.5
+  take_profit: 2R`;
+        
+        // Set up utility functions
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alert-container');
+            alertContainer.className = `alert alert-${type} mb-4`;
+            alertContainer.textContent = message;
+            alertContainer.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alertContainer.style.display = 'none';
+            }, 5000);
+        }
+        
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+        
+        // Initialize Monaco Editor
+        function initMonacoEditor() {
+            // Initialize the editor
+            editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: DEFAULT_DSL,
+                language: 'yaml',
+                theme: 'vs',
+                minimap: { enabled: false },
+                automaticLayout: true,
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                lineNumbers: 'on',
+                renderLineHighlight: 'all',
+                tabSize: 2
+            });
+            
+            // Load strategy ID from query params if available
+            const urlParams = new URLSearchParams(window.location.search);
+            const strategyId = urlParams.get('strategy_id');
+            
+            if (strategyId) {
+                loadStrategy(strategyId);
+            }
+        }
+        
+        // Load strategy presets
+        async function loadStrategyPresets() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const response = await fetch('/api/v1/strategies/presets', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load strategy presets');
+                }
+                
+                const presets = await response.json();
+                displayPresets(presets);
+            } catch (error) {
+                console.error('Error loading presets:', error);
+                showAlert('Failed to load strategy presets', 'danger');
+            }
+        }
+        
+        // Display presets in the UI
+        function displayPresets(presets) {
+            const presetsContainer = document.getElementById('presets-container');
+            presetsContainer.innerHTML = '';
+            
+            if (presets.length === 0) {
+                presetsContainer.innerHTML = '<div class="col-12"><p>No presets available for your subscription tier.</p></div>';
+                return;
+            }
+            
+            presets.forEach(preset => {
+                const tierBadgeClass = {
+                    'basic': 'bg-secondary',
+                    'pro': 'bg-primary',
+                    'enterprise': 'bg-danger'
+                }[preset.tier_required.toLowerCase()];
+                
+                const presetElement = document.createElement('div');
+                presetElement.className = 'col-md-6 col-lg-6';
+                presetElement.innerHTML = `
+                    <div class="card preset-card" data-preset-id="${preset.id}">
+                        <div class="card-body">
+                            <span class="badge ${tierBadgeClass} preset-badge">${preset.tier_required}</span>
+                            <h5 class="card-title">${preset.name}</h5>
+                            <p class="card-text">${preset.description}</p>
+                            <button class="btn btn-sm btn-outline-primary use-preset-btn">
+                                <i class="bi bi-file-earmark-code"></i> Use Template
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                presetsContainer.appendChild(presetElement);
+                
+                // Add click event to use preset
+                const usePresetBtn = presetElement.querySelector('.use-preset-btn');
+                usePresetBtn.addEventListener('click', () => {
+                    editor.setValue(preset.dsl_content);
+                    // Switch to editor tab
+                    document.getElementById('editor-tab').click();
+                });
+            });
+        }
+        
+        // Load an existing strategy by ID
+        async function loadStrategy(strategyId) {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const response = await fetch(`/api/v1/strategies/${strategyId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load strategy');
+                }
+                
+                const strategy = await response.json();
+                currentStrategyId = strategy.id;
+                editor.setValue(strategy.dsl_content);
+                showAlert(`Strategy "${strategy.name}" loaded successfully`, 'info');
+            } catch (error) {
+                console.error('Error loading strategy:', error);
+                showAlert('Failed to load strategy', 'danger');
+            }
+        }
+        
+        // Validate DSL content
+        async function validateDSL() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const dslContent = editor.getValue();
+                
+                const response = await fetch('/api/v1/strategies/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: dslContent })
+                });
+                
+                const result = await response.json();
+                
+                if (result.valid) {
+                    showAlert('Strategy syntax is valid! ✅', 'success');
+                    return true;
+                } else {
+                    showAlert(`Validation error: ${result.error}`, 'danger');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error validating DSL:', error);
+                showAlert('Failed to validate strategy DSL', 'danger');
+                return false;
+            }
+        }
+        
+        // Generate Python code from DSL
+        async function generateCode() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const dslContent = editor.getValue();
+                
+                const response = await fetch('/api/v1/strategies/generate-code', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: dslContent })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate code');
+                }
+                
+                const result = await response.json();
+                const codePreview = document.getElementById('code-preview');
+                codePreview.textContent = result.code;
+                
+                // Switch to code tab
+                document.getElementById('code-tab').click();
+            } catch (error) {
+                console.error('Error generating code:', error);
+                showAlert('Failed to generate Python code', 'danger');
+            }
+        }
+        
+        // Save strategy
+        async function saveStrategy() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                // Validate before saving
+                const isValid = await validateDSL();
+                if (!isValid) {
+                    return;
+                }
+                
+                const dslContent = editor.getValue();
+                
+                // Extract strategy name from DSL
+                let strategyName = 'custom_strategy';
+                const match = dslContent.match(/strategy_name:\s*([^\n]+)/);
+                if (match && match[1]) {
+                    strategyName = match[1].trim();
+                }
+                
+                // Determine if it's a create or update operation
+                let url = '/api/v1/strategies';
+                let method = 'POST';
+                let body = {
+                    name: strategyName,
+                    description: `Custom strategy: ${strategyName}`,
+                    strategy_type: 'CUSTOM',
+                    dsl_content: dslContent,
+                    is_public: false
+                };
+                
+                if (currentStrategyId) {
+                    url = `/api/v1/strategies/${currentStrategyId}`;
+                    method = 'PUT';
+                    body = {
+                        name: strategyName,
+                        dsl_content: dslContent
+                    };
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save strategy');
+                }
+                
+                const result = await response.json();
+                currentStrategyId = result.id;
+                
+                showAlert('Strategy saved successfully! 🎉', 'success');
+            } catch (error) {
+                console.error('Error saving strategy:', error);
+                showAlert('Failed to save strategy', 'danger');
+            }
+        }
+        
+        // Run backtest
+        async function runBacktest(event) {
+            event.preventDefault();
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                // Get form values
+                const asset = document.getElementById('asset-select').value;
+                const timeframe = document.getElementById('timeframe-select').value;
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                
+                // Validate form
+                if (!asset || !timeframe || !startDate || !endDate) {
+                    showAlert('Please fill in all backtest parameters', 'warning');
+                    return;
+                }
+                
+                // Validate DSL
+                const isValid = await validateDSL();
+                if (!isValid) {
+                    return;
+                }
+                
+                // Prepare backtest params
+                const backtestParams = {
+                    strategy_id: currentStrategyId,
+                    dsl_content: editor.getValue(),
+                    asset_symbol: asset,
+                    timeframe: timeframe,
+                    start_date: new Date(startDate).toISOString(),
+                    end_date: new Date(endDate).toISOString()
+                };
+                
+                // Run backtest
+                const backrestResultsElement = document.getElementById('backtest-results');
+                backrestResultsElement.style.display = 'none';
+                showAlert('Running backtest...', 'info');
+                
+                const response = await fetch('/api/v1/strategies/backtest', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(backtestParams)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to run backtest');
+                }
+                
+                const result = await response.json();
+                displayBacktestResults(result);
+            } catch (error) {
+                console.error('Error running backtest:', error);
+                showAlert('Failed to run backtest', 'danger');
+            }
+        }
+        
+        // Display backtest results
+        function displayBacktestResults(results) {
+            // Update results metrics
+            document.getElementById('total-return').textContent = `${results.total_return.toFixed(2)}%`;
+            document.getElementById('win-rate').textContent = `${results.win_rate.toFixed(2)}%`;
+            document.getElementById('profit-factor').textContent = results.profit_factor.toFixed(2);
+            document.getElementById('max-drawdown').textContent = `${results.max_drawdown.toFixed(2)}%`;
+            
+            // Update additional metrics table
+            const metricsTable = document.getElementById('metrics-table');
+            metricsTable.innerHTML = '';
+            
+            const metrics = results.metrics;
+            for (const [key, value] of Object.entries(metrics)) {
+                const row = document.createElement('tr');
+                const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                row.innerHTML = `<td>${formattedKey}</td><td>${value}</td>`;
+                metricsTable.appendChild(row);
+            }
+            
+            // Generate equity curve chart
+            generateEquityChart(results.equity_curve);
+            
+            // Show results section
+            document.getElementById('backtest-results').style.display = 'block';
+            showAlert('Backtest completed successfully! 📊', 'success');
+        }
+        
+        // Generate equity curve chart
+        function generateEquityChart(equityCurve) {
+            const ctx = document.getElementById('equity-chart');
+            
+            // Destroy existing chart if it exists
+            if (backtestChart) {
+                backtestChart.destroy();
+            }
+            
+            // Format data for Chart.js
+            const labels = equityCurve.map(point => formatDate(point.date));
+            const data = equityCurve.map(point => point.equity);
+            
+            // Create chart
+            backtestChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Equity Curve',
+                        data: data,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                        fill: true,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 8
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + parseFloat(context.raw).toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Monaco editor when available
+            require(['vs/editor/editor.main'], function() {
+                initMonacoEditor();
+            });
+            
+            // Load strategy presets
+            loadStrategyPresets();
+            
+            // Add event listeners
+            document.getElementById('validate-btn').addEventListener('click', validateDSL);
+            document.getElementById('generate-code-btn').addEventListener('click', generateCode);
+            document.getElementById('save-btn').addEventListener('click', saveStrategy);
+            document.getElementById('backtest-form').addEventListener('submit', runBacktest);
+            
+            // Set default dates for backtest
+            const today = new Date();
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(today.getFullYear() - 1);
+            
+            document.getElementById('start-date').valueAsDate = oneYearAgo;
+            document.getElementById('end-date').valueAsDate = today;
+        });
+    </script>
+</body>
+</html>

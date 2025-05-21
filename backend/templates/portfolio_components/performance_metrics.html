@@ -1,0 +1,301 @@
+<!-- Performance Metrics Component -->
+<template id="performanceMetricsTemplate">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Performance Metrics</h5>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary time-range-btn active" data-range="1M">1M</button>
+                <button class="btn btn-sm btn-outline-secondary time-range-btn" data-range="3M">3M</button>
+                <button class="btn btn-sm btn-outline-secondary time-range-btn" data-range="6M">6M</button>
+                <button class="btn btn-sm btn-outline-secondary time-range-btn" data-range="1Y">1Y</button>
+                <button class="btn btn-sm btn-outline-secondary time-range-btn" data-range="ALL">All</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Equity Curve</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="equityCurve-{{portfolioId}}" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Asset Allocation</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <canvas id="allocationChart-{{portfolioId}}" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Key Metrics</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Starting Capital:</th>
+                                    <td>${{formatCurrency metrics.starting_capital}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Current Value:</th>
+                                    <td>${{formatCurrency metrics.current_value}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Total Return:</th>
+                                    <td class="{{profitLossClass metrics.total_return_amount}}">
+                                        ${{formatCurrency metrics.total_return_amount}} ({{formatPercent metrics.total_return_percent}}%)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Annual Return:</th>
+                                    <td class="{{profitLossClass metrics.annual_return}}">{{formatPercent metrics.annual_return}}%</td>
+                                </tr>
+                                <tr>
+                                    <th>Sharpe Ratio:</th>
+                                    <td>{{formatNumber metrics.sharpe_ratio}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Max Drawdown:</th>
+                                    <td class="text-danger">{{formatPercent metrics.max_drawdown}}%</td>
+                                </tr>
+                                <tr>
+                                    <th>Win Rate:</th>
+                                    <td>{{formatPercent metrics.win_rate}}%</td>
+                                </tr>
+                                <tr>
+                                    <th>Profit Factor:</th>
+                                    <td>{{formatNumber metrics.profit_factor}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Avg Win/Loss Ratio:</th>
+                                    <td>{{formatNumber metrics.avg_win_loss_ratio}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Market Regime Performance</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Regime</th>
+                                        <th>Win Rate</th>
+                                        <th>Return</th>
+                                        <th>Trades</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#each metrics.regime_performance}}
+                                    <tr>
+                                        <td>{{regime}}</td>
+                                        <td>{{formatPercent win_rate}}%</td>
+                                        <td class="{{profitLossClass return}}">{{formatPercent return}}%</td>
+                                        <td>{{trade_count}}</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                            <div class="text-center mt-2">
+                                <canvas id="regimePerformanceChart-{{portfolioId}}" height="150"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Monthly Returns (%)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Year</th>
+                                            <th>Jan</th>
+                                            <th>Feb</th>
+                                            <th>Mar</th>
+                                            <th>Apr</th>
+                                            <th>May</th>
+                                            <th>Jun</th>
+                                            <th>Jul</th>
+                                            <th>Aug</th>
+                                            <th>Sep</th>
+                                            <th>Oct</th>
+                                            <th>Nov</th>
+                                            <th>Dec</th>
+                                            <th>YTD</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{#each metrics.monthly_returns}}
+                                        <tr>
+                                            <td>{{year}}</td>
+                                            {{#each months}}
+                                            <td class="{{profitLossClass this}}">{{#if this}}{{formatPercent this}}%{{else}}-{{/if}}</td>
+                                            {{/each}}
+                                            <td class="{{profitLossClass ytd}}"><strong>{{formatPercent ytd}}%</strong></td>
+                                        </tr>
+                                        {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Drawdown Chart</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="drawdownChart-{{portfolioId}}" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Trading Activity</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="tradingActivityChart-{{portfolioId}}" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Strategy Performance Modal Template -->
+<template id="strategyPerformanceModalTemplate">
+    <div class="modal fade" id="strategyPerformanceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Strategy Performance Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <select class="form-select" id="strategySelector">
+                                <option value="all">All Strategies</option>
+                                <!-- Strategies will be dynamically populated -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Strategy Returns</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="strategyReturnsChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Strategy Metrics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th>Total Trades:</th>
+                                            <td id="strategyTotalTrades"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Win Rate:</th>
+                                            <td id="strategyWinRate"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Profit Factor:</th>
+                                            <td id="strategyProfitFactor"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Avg Win:</th>
+                                            <td id="strategyAvgWin"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Avg Loss:</th>
+                                            <td id="strategyAvgLoss"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Max Consecutive Wins:</th>
+                                            <td id="strategyMaxConsecWins"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Max Consecutive Losses:</th>
+                                            <td id="strategyMaxConsecLosses"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Strategy Regime Performance</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <canvas id="strategyRegimeChart" height="200"></canvas>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Regime</th>
+                                                        <th>Win Rate</th>
+                                                        <th>Return</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="strategyRegimeTable">
+                                                    <!-- Regime data will be populated dynamically -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

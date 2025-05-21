@@ -1,0 +1,586 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+  .regime-legend {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .regime-legend-item {
+    display: flex;
+    align-items: center;
+    margin-right: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .selected-asset-card {
+    border-color: var(--primary-color);
+    border-width: 2px;
+  }
+  .chart-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .regime-chart {
+    width: 100%;
+    height: auto;
+    border-radius: 0.375rem;
+    margin-bottom: 1.5rem;
+  }
+  .regime-periods-table {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1>Market Regime Analysis</h1>
+      <p class="lead">Visualize and analyze market regimes across different assets and timeframes.</p>
+    </div>
+  </div>
+
+  <!-- Assets and Timeframe Selector -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Select Assets and Timeframe</h5>
+        </div>
+        <div class="card-body">
+          <form id="regime-form">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="asset-select" class="form-label">Assets</label>
+                <select class="form-select" id="asset-select" name="asset">
+                  <option value="BTC-USD">Bitcoin (BTC-USD)</option>
+                  <option value="ETH-USD">Ethereum (ETH-USD)</option>
+                  <option value="SPY">S&P 500 (SPY)</option>
+                  <option value="QQQ">Nasdaq 100 (QQQ)</option>
+                  <option value="AAPL">Apple (AAPL)</option>
+                  <option value="MSFT">Microsoft (MSFT)</option>
+                  <option value="AMZN">Amazon (AMZN)</option>
+                  <option value="TSLA">Tesla (TSLA)</option>
+                  <option value="EURUSD=X">EUR/USD</option>
+                  <option value="GC=F">Gold Futures</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="timeframe-select" class="form-label">Timeframe</label>
+                <select class="form-select" id="timeframe-select" name="timeframe">
+                  <option value="1d">Daily (1d)</option>
+                  <option value="4h">4 Hour (4h)</option>
+                  <option value="1h">1 Hour (1h)</option>
+                  <option value="15m">15 Min (15m)</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="time-range-select" class="form-label">Time Range</label>
+                <select class="form-select" id="time-range-select" name="time_range">
+                  <option value="1w">1 Week</option>
+                  <option value="1m" selected>1 Month</option>
+                  <option value="3m">3 Months</option>
+                  <option value="6m">6 Months</option>
+                  <option value="1y">1 Year</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Analyze</button>
+              </div>
+            </div>
+            
+            <!-- Custom date range (hidden by default) -->
+            <div class="row mt-3" id="custom-date-container" style="display: none;">
+              <div class="col-md-4">
+                <label for="start-date" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="start-date" name="start_date">
+              </div>
+              <div class="col-md-4">
+                <label for="end-date" class="form-label">End Date</label>
+                <input type="date" class="form-control" id="end-date" name="end_date">
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regime Analysis Results -->
+  <div class="row">
+    <!-- Main Chart Column -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0" id="asset-title">Market Regime Visualization</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-options">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-outline-primary active" data-chart-type="price_with_regimes">Price with Regimes</button>
+              <button type="button" class="btn btn-outline-primary" data-chart-type="regime_distribution">Regime Distribution</button>
+              <button type="button" class="btn btn-outline-primary" data-chart-type="regime_transitions">Regime Transitions</button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" id="download-chart">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+              </svg>
+              Download
+            </button>
+          </div>
+
+          <!-- Regime Legend -->
+          <div class="regime-legend">
+            <div class="regime-legend-item">
+              <div class="regime-indicator regime-bullish-trending"></div>
+              <span>Bullish Trending</span>
+            </div>
+            <div class="regime-legend-item">
+              <div class="regime-indicator regime-bearish-trending"></div>
+              <span>Bearish Trending</span>
+            </div>
+            <div class="regime-legend-item">
+              <div class="regime-indicator regime-high-volatility"></div>
+              <span>High Volatility</span>
+            </div>
+            <div class="regime-legend-item">
+              <div class="regime-indicator regime-low-volatility"></div>
+              <span>Low Volatility</span>
+            </div>
+            <div class="regime-legend-item">
+              <div class="regime-indicator regime-bullish-breakout"></div>
+              <span>Bullish Breakout</span>
+            </div>
+            <div class="regime-legend-item">
+              <div class="regime-indicator regime-bearish-breakout"></div>
+              <span>Bearish Breakout</span>
+            </div>
+            <div class="regime-legend-item">
+              <div class="regime-indicator regime-neutral-ranging"></div>
+              <span>Neutral Ranging</span>
+            </div>
+          </div>
+
+          <!-- Chart Container -->
+          <div id="regime-chart-container">
+            <div class="loader-container">
+              <div class="loader"></div>
+            </div>
+            <p class="text-center">Select an asset and timeframe above to view regime analysis</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Column -->
+    <div class="col-lg-4">
+      <!-- Current Regime Card -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Current Regime</h5>
+        </div>
+        <div class="card-body" id="current-regime-container">
+          <div class="text-center">
+            <p>Select an asset to view current regime</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regime Periods Card -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Regime Periods</h5>
+        </div>
+        <div class="card-body">
+          <div class="regime-periods-table" id="regime-periods-container">
+            <div class="text-center">
+              <p>Select an asset to view regime periods</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Asset Overview -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Multi-Asset Regime Overview</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <select class="form-select" id="multi-asset-select" multiple>
+                <option value="BTC-USD" selected>Bitcoin (BTC-USD)</option>
+                <option value="ETH-USD" selected>Ethereum (ETH-USD)</option>
+                <option value="SPY" selected>S&P 500 (SPY)</option>
+                <option value="QQQ">Nasdaq 100 (QQQ)</option>
+                <option value="AAPL">Apple (AAPL)</option>
+                <option value="MSFT">Microsoft (MSFT)</option>
+                <option value="AMZN">Amazon (AMZN)</option>
+                <option value="TSLA">Tesla (TSLA)</option>
+                <option value="EURUSD=X">EUR/USD</option>
+                <option value="GC=F">Gold Futures</option>
+              </select>
+              <small class="form-text">Hold Ctrl/Cmd to select multiple assets</small>
+            </div>
+            <div class="col-md-2">
+              <select class="form-select" id="multi-timeframe-select">
+                <option value="1d" selected>Daily (1d)</option>
+                <option value="4h">4 Hour (4h)</option>
+                <option value="1h">1 Hour (1h)</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-primary w-100" id="generate-overview">Generate Overview</button>
+            </div>
+          </div>
+          <div id="multi-asset-overview-container">
+            <p class="text-center">Click 'Generate Overview' to view regime analysis across multiple assets</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide custom date range based on selection
+    const timeRangeSelect = document.getElementById('time-range-select');
+    const customDateContainer = document.getElementById('custom-date-container');
+    
+    timeRangeSelect.addEventListener('change', function() {
+      if (this.value === 'custom') {
+        customDateContainer.style.display = 'flex';
+      } else {
+        customDateContainer.style.display = 'none';
+      }
+    });
+    
+    // Handle regime form submission
+    const regimeForm = document.getElementById('regime-form');
+    
+    regimeForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      loadRegimeData();
+    });
+    
+    // Chart type switching
+    const chartTypeButtons = document.querySelectorAll('[data-chart-type]');
+    
+    chartTypeButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Update active button
+        chartTypeButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Load chart based on selected type
+        const chartType = this.getAttribute('data-chart-type');
+        loadRegimeChart(chartType);
+      });
+    });
+    
+    // Handle multi-asset overview
+    const generateOverviewBtn = document.getElementById('generate-overview');
+    
+    generateOverviewBtn.addEventListener('click', function() {
+      generateMultiAssetOverview();
+    });
+    
+    // Download chart
+    const downloadChartBtn = document.getElementById('download-chart');
+    
+    downloadChartBtn.addEventListener('click', function() {
+      const chart = document.querySelector('#regime-chart-container img');
+      if (chart) {
+        const link = document.createElement('a');
+        link.download = 'market_regime_chart.png';
+        link.href = chart.src;
+        link.click();
+      }
+    });
+    
+    // Main function to load regime data
+    function loadRegimeData() {
+      const asset = document.getElementById('asset-select').value;
+      const timeframe = document.getElementById('timeframe-select').value;
+      const timeRange = document.getElementById('time-range-select').value;
+      
+      // Update title
+      document.getElementById('asset-title').textContent = `${asset} (${timeframe}) - Market Regime Visualization`;
+      
+      // Show loading state
+      document.getElementById('regime-chart-container').innerHTML = `
+        <div class="loader-container">
+          <div class="loader"></div>
+        </div>
+        <p class="text-center">Loading regime data...</p>
+      `;
+      
+      document.getElementById('current-regime-container').innerHTML = `
+        <div class="loader-container">
+          <div class="loader"></div>
+        </div>
+      `;
+      
+      document.getElementById('regime-periods-container').innerHTML = `
+        <div class="loader-container">
+          <div class="loader"></div>
+        </div>
+      `;
+      
+      // Load current regime
+      fetch(`/api/v1/market-regimes/current/${asset}/${timeframe}`)
+        .then(response => response.json())
+        .then(data => {
+          displayCurrentRegime(data);
+        })
+        .catch(error => {
+          console.error('Error loading current regime:', error);
+          document.getElementById('current-regime-container').innerHTML = `
+            <div class="alert alert-danger">Error loading current regime</div>
+          `;
+        });
+      
+      // Load regime history
+      let historyUrl = `/api/v1/market-regimes/history/${asset}/${timeframe}?time_range=${timeRange}`;
+      
+      if (timeRange === 'custom') {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        
+        if (startDate) {
+          historyUrl += `&start_date=${startDate}T00:00:00`;
+        }
+        
+        if (endDate) {
+          historyUrl += `&end_date=${endDate}T23:59:59`;
+        }
+      }
+      
+      fetch(historyUrl)
+        .then(response => response.json())
+        .then(data => {
+          displayRegimePeriods(data.regime_periods);
+        })
+        .catch(error => {
+          console.error('Error loading regime history:', error);
+          document.getElementById('regime-periods-container').innerHTML = `
+            <div class="alert alert-danger">Error loading regime history</div>
+          `;
+        });
+      
+      // Load default chart
+      const activeChartType = document.querySelector('[data-chart-type].active').getAttribute('data-chart-type');
+      loadRegimeChart(activeChartType);
+    }
+    
+    // Function to load regime chart
+    function loadRegimeChart(chartType) {
+      const asset = document.getElementById('asset-select').value;
+      const timeframe = document.getElementById('timeframe-select').value;
+      const timeRange = document.getElementById('time-range-select').value;
+      
+      // Show loading state
+      document.getElementById('regime-chart-container').innerHTML = `
+        <div class="loader-container">
+          <div class="loader"></div>
+        </div>
+        <p class="text-center">Loading ${chartType.replace('_', ' ')} chart...</p>
+      `;
+      
+      // Build URL
+      let chartUrl = `/api/v1/market-regimes/visualization/${asset}/${timeframe}?chart_type=${chartType}&time_range=${timeRange}`;
+      
+      if (timeRange === 'custom') {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        
+        if (startDate) {
+          chartUrl += `&start_date=${startDate}T00:00:00`;
+        }
+        
+        if (endDate) {
+          chartUrl += `&end_date=${endDate}T23:59:59`;
+        }
+      }
+      
+      // Fetch chart
+      fetch(chartUrl)
+        .then(response => response.json())
+        .then(data => {
+          if (data.image_data) {
+            document.getElementById('regime-chart-container').innerHTML = `
+              <img src="data:image/png;base64,${data.image_data}" class="regime-chart" alt="${asset} ${chartType.replace('_', ' ')} chart">
+            `;
+          } else {
+            document.getElementById('regime-chart-container').innerHTML = `
+              <div class="alert alert-warning">No chart data available</div>
+            `;
+          }
+        })
+        .catch(error => {
+          console.error('Error loading regime chart:', error);
+          document.getElementById('regime-chart-container').innerHTML = `
+            <div class="alert alert-danger">Error loading chart</div>
+          `;
+        });
+    }
+    
+    // Function to display current regime
+    function displayCurrentRegime(data) {
+      const regimeType = data.regime_type;
+      const strength = data.regime_strength * 100;
+      
+      let metricsHtml = '';
+      for (const [key, value] of Object.entries(data.regime_metrics)) {
+        metricsHtml += `
+          <tr>
+            <td>${key.replace('_', ' ')}</td>
+            <td>${typeof value === 'number' ? value.toFixed(2) : value}</td>
+          </tr>
+        `;
+      }
+      
+      document.getElementById('current-regime-container').innerHTML = `
+        <div class="d-flex align-items-center mb-3">
+          <div class="regime-indicator regime-${regimeType.toLowerCase().replace('_', '-')}"></div>
+          <h5 class="mb-0">${regimeType.replace('_', ' ').toUpperCase()}</h5>
+        </div>
+        <p>Regime strength: ${strength.toFixed(0)}%</p>
+        <div class="strength-indicator mb-3">
+          <div class="strength-indicator-bar regime-${regimeType.toLowerCase().replace('_', '-')}" style="width: ${strength}%"></div>
+        </div>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${metricsHtml}
+            <tr>
+              <td>Last change</td>
+              <td>${data.last_regime_change ? new Date(data.last_regime_change).toLocaleDateString() : 'N/A'}</td>
+            </tr>
+            <tr>
+              <td>Duration</td>
+              <td>${data.regime_duration_bars} bars</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+    }
+    
+    // Function to display regime periods
+    function displayRegimePeriods(periods) {
+      if (!periods || periods.length === 0) {
+        document.getElementById('regime-periods-container').innerHTML = `
+          <div class="alert alert-warning">No regime periods found</div>
+        `;
+        return;
+      }
+      
+      let tableRows = '';
+      periods.forEach(period => {
+        const startDate = new Date(period.start_date).toLocaleDateString();
+        const endDate = new Date(period.end_date).toLocaleDateString();
+        const regimeType = period.regime_type;
+        
+        tableRows += `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="regime-indicator regime-${regimeType.toLowerCase().replace('_', '-')}"></div>
+                <span>${regimeType.replace('_', ' ')}</span>
+              </div>
+            </td>
+            <td>${startDate}</td>
+            <td>${endDate}</td>
+            <td>${period.duration_bars} bars</td>
+          </tr>
+        `;
+      });
+      
+      document.getElementById('regime-periods-container').innerHTML = `
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Regime</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      `;
+    }
+    
+    // Function to generate multi-asset overview
+    function generateMultiAssetOverview() {
+      const assetSelect = document.getElementById('multi-asset-select');
+      const timeframe = document.getElementById('multi-timeframe-select').value;
+      
+      const selectedAssets = Array.from(assetSelect.selectedOptions).map(option => option.value);
+      
+      if (selectedAssets.length === 0) {
+        alert('Please select at least one asset');
+        return;
+      }
+      
+      // Show loading state
+      document.getElementById('multi-asset-overview-container').innerHTML = `
+        <div class="loader-container">
+          <div class="loader"></div>
+        </div>
+        <p class="text-center">Generating multi-asset overview...</p>
+      `;
+      
+      // Build URL
+      const overviewUrl = `/api/v1/market-regimes/overview?assets=${selectedAssets.join(',')}&timeframes=${timeframe}`;
+      
+      // Fetch overview
+      fetch(overviewUrl)
+        .then(response => response.json())
+        .then(data => {
+          if (data.overview_image) {
+            document.getElementById('multi-asset-overview-container').innerHTML = `
+              <img src="data:image/png;base64,${data.overview_image}" class="img-fluid" alt="Multi-asset regime overview">
+            `;
+          } else {
+            document.getElementById('multi-asset-overview-container').innerHTML = `
+              <div class="alert alert-warning">No overview data available</div>
+            `;
+          }
+        })
+        .catch(error => {
+          console.error('Error generating overview:', error);
+          document.getElementById('multi-asset-overview-container').innerHTML = `
+            <div class="alert alert-danger">Error generating overview</div>
+          `;
+        });
+    }
+    
+    // Load BTC-USD daily by default
+    document.getElementById('asset-select').value = 'BTC-USD';
+    document.getElementById('timeframe-select').value = '1d';
+    loadRegimeData();
+  });
+</script>
+{% endblock %}

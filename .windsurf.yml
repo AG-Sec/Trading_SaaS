@@ -1,0 +1,17 @@
+version: 1
+context:
+  files:
+    - prd.md
+    - agents/*.py
+    - api/*.py
+  model: "gpt-4o"   # default LLM
+prompts:
+  - name: "GenerateAgent"
+    pattern: "agent:([A-Za-z]+)"
+    task: |
+      Create the {{1}}Agent class in agents/{{1|lower}}.py using pydantic‑v2 models …
+  - name: "FixTests"
+    pattern: "tests failing"
+    task: "Refactor code until pytest passes"
+commands:
+  dev: "poetry run uvicorn api.main:app --reload"

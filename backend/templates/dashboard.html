@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Trading SaaS Platform{% endblock %}
+
+{% block styles %}
+<style>
+    .metric-card {
+        transition: transform 0.2s;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .metric-value {
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+    
+    .metric-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+    
+    .asset-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">Trading Dashboard</h1>
+            <p class="text-muted">Your trading performance at a glance</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-light">
+                <i class="fas fa-calendar-alt me-2"></i> May 2025
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown">
+                    <i class="fas fa-plus me-2"></i> Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionsDropdown">
+                    <li><a class="dropdown-item" href="/trading-signals"><i class="fas fa-search me-2"></i> Scan for Signals</a></li>
+                    <li><a class="dropdown-item" href="/portfolios/new"><i class="fas fa-plus-circle me-2"></i> Create Portfolio</a></li>
+                    <li><a class="dropdown-item" href="/market-regimes"><i class="fas fa-chart-line me-2"></i> Analyze Market Regimes</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="card metric-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                            <i class="fas fa-chart-line text-primary"></i>
+                        </div>
+                        <span class="text-muted">Monthly Return</span>
+                    </div>
+                    <div class="metric-value text-success">+12.8%</div>
+                    <div class="d-flex align-items-center mt-3">
+                        <span class="badge bg-success bg-opacity-10 text-success me-2">+2.4%</span>
+                        <small class="text-muted">vs. last month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-xl-3">
+            <div class="card metric-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-10 p-2 rounded me-3">
+                            <i class="fas fa-percentage text-success"></i>
+                        </div>
+                        <span class="text-muted">Win Rate</span>
+                    </div>
+                    <div class="metric-value">78.5%</div>
+                    <div class="d-flex align-items-center mt-3">
+                        <span class="badge bg-success bg-opacity-10 text-success me-2">+1.2%</span>
+                        <small class="text-muted">vs. last month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-xl-3">
+            <div class="card metric-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning bg-opacity-10 p-2 rounded me-3">
+                            <i class="fas fa-balance-scale text-warning"></i>
+                        </div>
+                        <span class="text-muted">Risk/Reward</span>
+                    </div>
+                    <div class="metric-value">2.35</div>
+                    <div class="d-flex align-items-center mt-3">
+                        <span class="badge bg-warning bg-opacity-10 text-warning me-2">-0.15</span>
+                        <small class="text-muted">vs. last month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-xl-3">
+            <div class="card metric-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info bg-opacity-10 p-2 rounded me-3">
+                            <i class="fas fa-signal text-info"></i>
+                        </div>
+                        <span class="text-muted">Active Signals</span>
+                    </div>
+                    <div class="metric-value">8</div>
+                    <div class="d-flex align-items-center mt-3">
+                        <span class="badge bg-info bg-opacity-10 text-info me-2">+3</span>
+                        <small class="text-muted">vs. last week</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Portfolio Performance & Active Signals -->
+    <div class="row g-4 mb-4">
+        <!-- Portfolio Performance Chart -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Portfolio Performance</h5>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary">Week</button>
+                            <button type="button" class="btn btn-outline-secondary active">Month</button>
+                            <button type="button" class="btn btn-outline-secondary">Year</button>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="portfolioPerformanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Signals -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-0">
+                    <div class="p-4 border-bottom">
+                        <h5 class="card-title mb-0">Active Signals</h5>
+                    </div>
+                    <div class="p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center p-3">
+                                <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" alt="BTC" class="asset-icon me-3">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">BTC-USD <span class="badge bg-success">LONG</span></h6>
+                                    <small class="text-muted">Entry: $106,750 • Target: $112,200</small>
+                                </div>
+                                <div class="text-success">+3.8%</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center p-3">
+                                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="ETH" class="asset-icon me-3">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">ETH-USD <span class="badge bg-success">LONG</span></h6>
+                                    <small class="text-muted">Entry: $2,526 • Target: $2,680</small>
+                                </div>
+                                <div class="text-success">+1.2%</div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center p-3">
+                                <img src="https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1348615622/image_1348615622.jpg?io=getty-c-w750" alt="SPY" class="asset-icon me-3">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">SPY <span class="badge bg-danger">SHORT</span></h6>
+                                    <small class="text-muted">Entry: $592.5 • Target: $580.8</small>
+                                </div>
+                                <div class="text-danger">-0.4%</div>
+                            </a>
+                        </div>
+                        <div class="text-center p-3">
+                            <a href="/trading-signals" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-search me-2"></i> Find More Signals
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Market Regimes & Watchlist -->
+    <div class="row g-4">
+        <!-- Market Regimes -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Market Regimes</h5>
+                        <a href="/market-regimes" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-chart-line me-2"></i> Detailed Analysis
+                        </a>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="text-center p-3 rounded-3 bg-dark bg-opacity-25">
+                                <h6 class="text-uppercase text-muted mb-3">Stocks</h6>
+                                <div class="regime-badge trending mx-auto mb-2">Trending</div>
+                                <div class="mt-2">
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill">S&P 500 +0.72%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-center p-3 rounded-3 bg-dark bg-opacity-25">
+                                <h6 class="text-uppercase text-muted mb-3">Crypto</h6>
+                                <div class="regime-badge volatile mx-auto mb-2">Volatile</div>
+                                <div class="mt-2">
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">BTC -1.23%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Watchlist -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+                        <h5 class="card-title mb-0">Watchlist</h5>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-plus me-2"></i> Add Asset
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Asset</th>
+                                    <th>Price</th>
+                                    <th>24h Change</th>
+                                    <th>Regime</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                                    <td>$592.85</td>
+                                    <td class="text-success">+0.72%</td>
+                                    <td><span class="badge bg-success bg-opacity-10 text-success">Trending</span></td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-sm btn-outline-primary">Analyze</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Initialize portfolio performance chart
+    const portfolioCtx = document.getElementById('portfolioPerformanceChart').getContext('2d');
+    const portfolioChart = new Chart(portfolioCtx, {
+        type: 'line',
+        data: {
+            labels: ['May 01', 'May 05', 'May 10', 'May 15', 'May 20'],
+            datasets: [{
+                label: 'Portfolio Value',
+                data: [10000, 10450, 10250, 11200, 11280],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#2563eb',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `$${context.raw.toLocaleString()}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            return `$${value.toLocaleString()}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

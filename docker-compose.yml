@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile # You'll need to create this Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    # depends_on:
+      # - db # if you add a database service
+    networks:
+      - trading_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile # You'll need to create this Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Don't mount over node_modules in container
+      - /app/.next # Persist .next folder
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    networks:
+      - trading_network
+
+  # Add other services like database (PostgreSQL, Redis, etc.) here
+  # db:
+  #   image: postgres:15
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   env_file:
+  #     - .env # For DB_USER, DB_PASSWORD, DB_NAME
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - trading_network
+
+networks:
+  trading_network:
+    driver: bridge
+
+volumes:
+  # postgres_data: # if you add a database service

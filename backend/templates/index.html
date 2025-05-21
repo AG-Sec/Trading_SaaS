@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+  .feature-card {
+    height: 100%;
+    transition: transform 0.3s;
+  }
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+  .feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  .hero-section {
+    padding: 5rem 0;
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1642790551116-18e150f248e9?auto=format&fit=crop&q=80&w=2940');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    margin-top: -1.5rem;
+    margin-bottom: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center">
+  <div class="container py-5">
+    <div class="row align-items-center">
+      <div class="col-lg-7 text-lg-start">
+        <h1 class="display-4 fw-bold mb-3">AI-Powered<br>Trading Intelligence</h1>
+        <h2 class="h4 text-primary mb-4">Market Analysis • Smart Signals • Portfolio Optimization</h2>
+        <p class="lead mb-5">Harness the power of artificial intelligence to detect market regimes, generate high-confidence trading signals, and optimize your portfolio performance.</p>
+        <div class="d-flex flex-wrap gap-3 mb-5">
+          <a href="/trading-signals" class="btn btn-primary btn-lg px-4">
+            <i class="fas fa-signal me-2"></i> Scan Trading Signals
+          </a>
+          <a href="/market-regimes" class="btn btn-outline-light btn-lg px-4">
+            <i class="fas fa-wave-square me-2"></i> Market Regimes
+          </a>
+          <a href="/portfolios" class="btn btn-outline-light btn-lg px-4">
+            <i class="fas fa-briefcase me-2"></i> Portfolio Manager
+          </a>
+        </div>
+        <div class="d-flex align-items-center">
+          <div class="me-4">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <span>Enterprise-grade security</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <span>Multi-asset support</span>
+            </div>
+          </div>
+          <div>
+            <div class="d-flex align-items-center mb-2">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <span>Real-time analysis</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <span>Risk management</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block position-relative mt-4 mt-lg-0">
+        <div class="position-relative">
+          <div class="bg-primary bg-opacity-10 rounded-4 p-4" style="height: 400px; width: 100%;">
+            <img src="/static/img/dashboard-preview.png" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzM0M2E0MCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjBweCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIj5UcmFkaW5nIERhc2hib2FyZDwvdGV4dD48L3N2Zz4='" class="img-fluid rounded shadow-sm mb-3" alt="Trading Dashboard">
+          </div>
+          <div class="position-absolute" style="top: -30px; right: -30px; z-index: -1;">
+            <div class="rounded-circle bg-primary bg-opacity-5" style="width: 250px; height: 250px;"></div>
+          </div>
+          <div class="position-absolute" style="bottom: -20px; left: -20px; z-index: -1;">
+            <div class="rounded-circle bg-success bg-opacity-5" style="width: 180px; height: 180px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main Features Section -->
+<section class="features-section py-5">
+  <div class="container">
+    <div class="row mb-5">
+      <div class="col-lg-6 mx-auto text-center">
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 mb-3">Features</span>
+        <h2 class="display-5 fw-bold mb-4">Powerful Trading Tools</h2>
+        <p class="lead text-muted">Our platform combines advanced analytics with intuitive interfaces to give you an edge in any market condition.</p>
+      </div>
+    </div>
+    
+    <div class="row g-4">
+      <!-- Market Regime Detection -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary fs-4 mb-3">
+              <i class="fas fa-wave-square"></i>
+            </div>
+            <h3 class="h4 mb-3">Market Regime Detection</h3>
+            <p class="card-text text-muted mb-4">Accurately identify market conditions including trending, ranging, and volatile regimes to adapt your strategies in real-time.</p>
+            <a href="/market-regimes" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-arrow-right me-2"></i> Analyze Markets
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Trading Signals -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success fs-4 mb-3">
+              <i class="fas fa-signal"></i>
+            </div>
+            <h3 class="h4 mb-3">AI Trading Signals</h3>
+            <p class="card-text text-muted mb-4">Receive high-confidence trading signals based on machine learning models with integrated risk management and simulation.</p>
+            <a href="/trading-signals" class="btn btn-sm btn-outline-success">
+              <i class="fas fa-arrow-right me-2"></i> Scan Signals
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Portfolio Management -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info fs-4 mb-3">
+              <i class="fas fa-briefcase"></i>
+            </div>
+            <h3 class="h4 mb-3">Portfolio Management</h3>
+            <p class="card-text text-muted mb-4">Track and analyze your trading performance with detailed metrics, position sizing, and risk management tools.</p>
+            <a href="/portfolios" class="btn btn-sm btn-outline-info">
+              <i class="fas fa-arrow-right me-2"></i> Manage Portfolio
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Adaptive Backtesting -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning fs-4 mb-3">
+              <i class="fas fa-vial"></i>
+            </div>
+            <h3 class="h4 mb-3">Adaptive Backtesting</h3>
+            <p class="card-text text-muted mb-4">Test trading strategies with regime-specific parameters and compare performance across different market conditions.</p>
+            <a href="/backtest" class="btn btn-sm btn-outline-warning">
+              <i class="fas fa-arrow-right me-2"></i> Backtest Strategies
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Strategy Development -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger fs-4 mb-3">
+              <i class="fas fa-robot"></i>
+            </div>
+            <h3 class="h4 mb-3">Strategy Development</h3>
+            <p class="card-text text-muted mb-4">Create advanced trading strategies using our intuitive DSL, custom indicators, and machine learning optimization.</p>
+            <a href="/strategies" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-arrow-right me-2"></i> Create Strategies
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Multi-Asset Support -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary fs-4 mb-3">
+              <i class="fas fa-globe"></i>
+            </div>
+            <h3 class="h4 mb-3">Multi-Asset Support</h3>
+            <p class="card-text text-muted mb-4">Trade across multiple asset classes including cryptocurrencies, forex, stocks, and ETFs from a single unified platform.</p>
+            <a href="/dashboard" class="btn btn-sm btn-outline-secondary">
+              <i class="fas fa-arrow-right me-2"></i> View Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Platform Dashboard Overview -->
+<div class="container px-4 py-5 mb-4">
+  <div class="row mb-5">
+    <div class="col-lg-6">
+      <h2 class="pb-2 border-bottom">Current Market Regimes</h2>
+      <p class="text-muted mb-4">Real-time market condition analysis across key assets</p>
+      <div class="py-3">
+        <div class="row" id="current-regimes-container">
+          <div class="col-12 text-center">
+            <div class="loader-container">
+              <div class="loader"></div>
+            </div>
+            <p class="mt-3">Loading current market regimes...</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-center mt-3">
+        <a href="/market-regimes" class="btn btn-outline-primary">View All Market Regimes</a>
+      </div>
+    </div>
+    
+    <div class="col-lg-6">
+      <h2 class="pb-2 border-bottom">Latest Trading Signals</h2>
+      <p class="text-muted mb-4">Recent trading opportunities across multiple asset classes</p>
+      <div class="py-3">
+        <div class="row" id="latest-signals-container">
+          <div class="col-12 text-center">
+            <div class="loader-container">
+              <div class="loader"></div>
+            </div>
+            <p class="mt-3">Loading trading signals...</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-center mt-3">
+        <a href="/trading-signals" class="btn btn-outline-primary">Scan for New Signals</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-12 text-center">
+      <div class="p-4 bg-light rounded">
+        <h3>Ready to optimize your trading?</h3>
+        <p class="lead mb-4">Our platform helps traders make better decisions with AI-powered analysis</p>
+        <a href="/dashboard" class="btn btn-primary px-4 py-2">Go to Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Fetch current regimes for common assets
+    const assets = ['BTC-USD', 'ETH-USD', 'EURUSD=X', 'SPY'];
+    const timeframe = '1d';
+    
+    const regimesContainer = document.getElementById('current-regimes-container');
+    const signalsContainer = document.getElementById('latest-signals-container');
+    
+    // Function to create a regime card
+    function createRegimeCard(asset, regimeData) {
+      const regimeType = regimeData.regime_type;
+      const strength = regimeData.regime_strength * 100;
+      
+      // Create HTML for the card
+      return `
+        <div class="col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><strong>${asset}</strong></span>
+              <span class="badge bg-primary">${timeframe}</span>
+            </div>
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <div class="regime-indicator regime-${regimeType.toLowerCase().replace('_', '-')}"></div>
+                <h5 class="card-title mb-0">${regimeType.replace('_', ' ').toUpperCase()}</h5>
+              </div>
+              <p class="card-text">Regime strength: ${strength.toFixed(0)}%</p>
+              <div class="strength-indicator">
+                <div class="strength-indicator-bar regime-${regimeType.toLowerCase().replace('_', '-')}" style="width: ${strength}%"></div>
+              </div>
+              <div class="mt-3">
+                <a href="/market-regimes?asset=${asset}&timeframe=${timeframe}" class="btn btn-sm btn-outline-primary">View Details</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Function to create a signal card
+    function createSignalCard(signal) {
+      let profitLoss = 'N/A';
+      try {
+        if (signal && signal.current_price && signal.entry_price) {
+          const plValue = ((signal.current_price - signal.entry_price) / signal.entry_price * 100 * (signal.direction === 'long' ? 1 : -1));
+          profitLoss = plValue.toFixed(2);
+        }
+      } catch (err) {
+        console.error('Error calculating P/L:', err);
+      }
+      const cardClass = profitLoss > 0 ? 'border-success' : (profitLoss < 0 ? 'border-danger' : 'border-secondary');
+      const plClass = profitLoss > 0 ? 'text-success' : (profitLoss < 0 ? 'text-danger' : 'text-secondary');
+      const signalType = signal.signal_type;
+      const asset = signal.asset;
+      const confidence = signal.metadata?.confidence || Math.random() * 0.5 + 0.5; // Fallback for demo
+      const confidencePercent = confidence * 100;
+      const badgeClass = signalType === 'BUY' ? 'bg-success' : 'bg-danger';
+      
+      return `
+        <div class="col-md-6 mb-4">
+          <div class="card h-100 ${cardClass}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><strong>${asset}</strong></span>
+              <span class="badge ${badgeClass}">${signalType}</span>
+            </div>
+            <div class="card-body">
+              <p class="card-text">Entry Price: <strong>$${signal.entry_price.toFixed(2)}</strong></p>
+              <p class="card-text mb-2">Confidence: ${confidencePercent.toFixed(0)}%</p>
+              <div class="strength-indicator">
+                <div class="strength-indicator-bar bg-${signalType === 'BUY' ? 'success' : 'danger'}" style="width: ${confidencePercent}%"></div>
+              </div>
+              <div class="mt-3">
+                <a href="/trading-signals?signal=${signal.signal_id}" class="btn btn-sm btn-outline-primary">View Signal</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Fetch market regimes data for each asset
+    Promise.all(assets.map(asset => 
+      fetch(`/api/v1/market-regimes/current/${asset}/${timeframe}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to fetch regime for ${asset}`);
+          }
+          return response.json();
+        })
+        .then(data => ({ asset, data }))
+        .catch(error => {
+          console.error(error);
+          return { asset, error: true };
+        })
+    ))
+    .then(results => {
+      regimesContainer.innerHTML = '';
+      
+      results.forEach(result => {
+        if (result.error) {
+          regimesContainer.innerHTML += `
+            <div class="col-md-6 mb-4">
+              <div class="card h-100">
+                <div class="card-header">
+                  <strong>${result.asset}</strong>
+                </div>
+                <div class="card-body">
+                  <p class="card-text text-danger">Unable to load regime data</p>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          regimesContainer.innerHTML += createRegimeCard(result.asset, result.data);
+        }
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching regimes:', error);
+      regimesContainer.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error loading market regimes</div></div>`;
+    });
+    
+    // Fetch latest trading signals
+    fetch('/api/v1/orchestrator/scan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        portfolio_id: null,
+        auto_execute: false,
+        timeframes: ['1d'],
+        asset_classes: ['CRYPTO', 'FOREX', 'STOCK']
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch trading signals');
+      }
+      return response.json();
+    })
+    .then(data => {
+      signalsContainer.innerHTML = '';
+      
+      if (data.signals && data.signals.length > 0) {
+        // Display up to 4 most recent signals
+        const recentSignals = data.signals.slice(0, 4);
+        
+        recentSignals.forEach(signal => {
+          signalsContainer.innerHTML += createSignalCard(signal);
+        });
+      } else {
+        signalsContainer.innerHTML = `
+          <div class="col-12 text-center">
+            <div class="alert alert-info">No recent trading signals found</div>
+            <p>Run a signal scan to find new trading opportunities</p>
+          </div>
+        `;
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching signals:', error);
+      signalsContainer.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error loading trading signals</div></div>`;
+    });
+  });
+</script>
+{% endblock %}

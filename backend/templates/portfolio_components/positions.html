@@ -1,0 +1,295 @@
+<!-- Positions Component -->
+<template id="positionsTemplate">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Positions</h5>
+            <button class="btn btn-sm btn-primary add-position-btn" data-portfolio-id="{{portfolioId}}">
+                <i class="bi bi-plus-circle"></i> Add Position
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover position-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Asset Class</th>
+                            <th>Direction</th>
+                            <th>Quantity</th>
+                            <th>Entry Price</th>
+                            <th>Current Price</th>
+                            <th>Market Value</th>
+                            <th>P/L</th>
+                            <th>P/L %</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positions-{{portfolioId}}">
+                        {{#each positions}}
+                        <tr data-position-id="{{id}}">
+                            <td>{{symbol}}</td>
+                            <td>{{asset_class}}</td>
+                            <td>
+                                {{#if direction_is_long}}
+                                <span class="badge bg-success">LONG</span>
+                                {{else}}
+                                <span class="badge bg-danger">SHORT</span>
+                                {{/if}}
+                            </td>
+                            <td>{{formatNumber quantity}}</td>
+                            <td>${{formatCurrency average_entry_price}}</td>
+                            <td>${{formatCurrency current_price}}</td>
+                            <td>${{formatCurrency market_value}}</td>
+                            <td class="{{profitLossClass unrealized_profit_loss}}">${{formatCurrency unrealized_profit_loss}}</td>
+                            <td class="{{profitLossClass unrealized_profit_loss_percent}}">{{formatPercent unrealized_profit_loss_percent}}%</td>
+                            <td>
+                                <div class="position-controls">
+                                    <button class="btn btn-sm btn-info view-position-btn" data-position-id="{{id}}" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning edit-position-btn" data-position-id="{{id}}" title="Edit Stop/Take Profit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger close-position-btn" data-position-id="{{id}}" title="Close Position">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+            
+            {{#if positions.length}}
+            <div class="mt-3">
+                <h6>Risk Exposure by Position</h6>
+                <div class="progress mb-3">
+                    {{#each positions}}
+                    <div 
+                        class="progress-bar {{directionClass direction}}" 
+                        role="progressbar" 
+                        style="width: {{position_size_percent}}%" 
+                        title="{{symbol}}: {{formatPercent position_size_percent}}%">
+                        {{symbol}} ({{formatPercent position_size_percent}}%)
+                    </div>
+                    {{/each}}
+                </div>
+                <div class="text-muted small">
+                    <span class="me-3"><i class="bi bi-circle-fill text-success"></i> Long</span>
+                    <span><i class="bi bi-circle-fill text-danger"></i> Short</span>
+                </div>
+            </div>
+            {{else}}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-inbox display-4"></i>
+                <p class="mt-2">No open positions in this portfolio.</p>
+                <button class="btn btn-primary add-position-btn" data-portfolio-id="{{portfolioId}}">
+                    <i class="bi bi-plus-circle"></i> Add Your First Position
+                </button>
+            </div>
+            {{/if}}
+        </div>
+    </div>
+</template>
+
+<!-- Add Position Modal Template -->
+<template id="addPositionModalTemplate">
+    <div class="modal fade" id="addPositionModal-{{portfolioId}}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Position</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addPositionForm-{{portfolioId}}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="symbol-{{portfolioId}}" class="form-label">Symbol</label>
+                                    <input type="text" class="form-control" id="symbol-{{portfolioId}}" placeholder="e.g., AAPL" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="assetClass-{{portfolioId}}" class="form-label">Asset Class</label>
+                                    <select class="form-select" id="assetClass-{{portfolioId}}" required>
+                                        <option value="STOCK">Stock</option>
+                                        <option value="ETF">ETF</option>
+                                        <option value="CRYPTO">Cryptocurrency</option>
+                                        <option value="FOREX">Forex</option>
+                                        <option value="OPTIONS">Options</option>
+                                        <option value="FUTURES">Futures</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="direction-{{portfolioId}}" class="form-label">Direction</label>
+                                    <select class="form-select" id="direction-{{portfolioId}}" required>
+                                        <option value="LONG">Long</option>
+                                        <option value="SHORT">Short</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity-{{portfolioId}}" class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" id="quantity-{{portfolioId}}" min="0.000001" step="0.000001" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="entryPrice-{{portfolioId}}" class="form-label">Entry Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="entryPrice-{{portfolioId}}" min="0.000001" step="0.000001" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="strategyId-{{portfolioId}}" class="form-label">Strategy (Optional)</label>
+                                    <select class="form-select" id="strategyId-{{portfolioId}}">
+                                        <option value="">-- No Strategy --</option>
+                                        <!-- Strategies will be populated dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="stopLossPrice-{{portfolioId}}" class="form-label">Stop Loss Price (Optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="stopLossPrice-{{portfolioId}}" min="0.000001" step="0.000001">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="takeProfitPrice-{{portfolioId}}" class="form-label">Take Profit Price (Optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="takeProfitPrice-{{portfolioId}}" min="0.000001" step="0.000001">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="maxRiskPercent-{{portfolioId}}" class="form-label">
+                                Max Risk % (Optional)
+                                <i class="bi bi-info-circle" title="Maximum risk as percentage of portfolio value"></i>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="maxRiskPercent-{{portfolioId}}" min="0.1" max="10" step="0.1" value="2">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <div class="form-text">Based on the RiskManagerAgent rules, max risk is 2% per trade.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes-{{portfolioId}}" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="notes-{{portfolioId}}" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="tags-{{portfolioId}}" class="form-label">Tags (Optional, comma separated)</label>
+                            <input type="text" class="form-control" id="tags-{{portfolioId}}" placeholder="e.g., breakout, trend, swing">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="savePositionBtn-{{portfolioId}}">Add Position</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Close Position Modal Template -->
+<template id="closePositionModalTemplate">
+    <div class="modal fade" id="closePositionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Close Position</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="closePositionForm">
+                        <input type="hidden" id="closePositionId">
+                        
+                        <div class="position-details mb-4">
+                            <h6>Position Details</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Symbol:</span>
+                                <span id="closePositionSymbol" class="fw-bold"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Current Quantity:</span>
+                                <span id="closePositionQuantity"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Average Entry Price:</span>
+                                <span id="closePositionEntryPrice"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Current Market Price:</span>
+                                <span id="closePositionMarketPrice"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Unrealized P/L:</span>
+                                <span id="closePositionPL"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="closeQuantity" class="form-label">Quantity to Close</label>
+                                    <input type="number" class="form-control" id="closeQuantity" min="0.000001" step="0.000001">
+                                    <div class="form-text">Leave empty to close entire position</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="exitPrice" class="form-label">Exit Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="exitPrice" min="0.000001" step="0.000001" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="closeNotes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="closeNotes" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="closeTags" class="form-label">Tags (Optional, comma separated)</label>
+                            <input type="text" class="form-control" id="closeTags" placeholder="e.g., profit-target, stop-out, manual">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmClosePositionBtn">Close Position</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

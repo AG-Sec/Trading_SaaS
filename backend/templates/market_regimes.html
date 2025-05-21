@@ -1,0 +1,544 @@
+{% extends "base.html" %}
+
+{% block title %}Market Regimes | Trading SaaS Platform{% endblock %}
+
+{% block styles %}
+<style>
+    .regime-card {
+        transition: transform 0.2s;
+    }
+    
+    .regime-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .regime-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-block;
+        text-align: center;
+    }
+    
+    .regime-badge.trending {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+    
+    .regime-badge.volatile {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+    
+    .regime-badge.ranging {
+        background-color: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+    
+    .regime-badge.unknown {
+        background-color: rgba(156, 163, 175, 0.1);
+        color: #9ca3af;
+    }
+    
+    .asset-select-item {
+        cursor: pointer;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    
+    .asset-select-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .asset-select-item.active {
+        background-color: rgba(37, 99, 235, 0.1);
+        border-left: 3px solid #2563eb;
+    }
+    
+    .timeframe-pill {
+        cursor: pointer;
+        padding: 0.35rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        background-color: rgba(255, 255, 255, 0.05);
+        transition: all 0.2s;
+    }
+    
+    .timeframe-pill:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .timeframe-pill.active {
+        background-color: rgba(37, 99, 235, 0.2);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">Market Regime Analysis</h1>
+            <p class="text-muted">Identify the current market conditions to adapt your strategy</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-light" id="refresh-data-btn">
+                <i class="fas fa-sync-alt me-2"></i> Refresh Data
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="timeRangeDropdown" data-bs-toggle="dropdown">
+                    <i class="fas fa-calendar-alt me-2"></i> 1 Month
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="timeRangeDropdown">
+                    <li><a class="dropdown-item" href="#" data-range="1w">1 Week</a></li>
+                    <li><a class="dropdown-item active" href="#" data-range="1m">1 Month</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="3m">3 Months</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="6m">6 Months</a></li>
+                    <li><a class="dropdown-item" href="#" data-range="1y">1 Year</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Asset Selector -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-0">
+                    <div class="p-4 border-bottom">
+                        <h5 class="card-title mb-0">Assets</h5>
+                    </div>
+                    <div class="p-2">
+                        <div class="list-group list-group-flush border-0">
+                            <div class="asset-select-item active" data-asset="BTC-USD">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" alt="BTC" class="me-3" style="width: 32px; height: 32px;">
+                                    <div>
+                                        <h6 class="mb-0">Bitcoin</h6>
+                                        <small class="text-muted">BTC-USD</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="asset-select-item" data-asset="ETH-USD">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="ETH" class="me-3" style="width: 32px; height: 32px;">
+                                    <div>
+                                        <h6 class="mb-0">Ethereum</h6>
+                                        <small class="text-muted">ETH-USD</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="asset-select-item" data-asset="SPY">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1348615622/image_1348615622.jpg?io=getty-c-w750" alt="SPY" class="me-3" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%;">
+                                    <div>
+                                        <h6 class="mb-0">S&P 500 ETF</h6>
+                                        <small class="text-muted">SPY</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="asset-select-item" data-asset="EURUSD=X">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 50%;">
+                                        <i class="fas fa-euro-sign"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">EUR/USD</h6>
+                                        <small class="text-muted">Forex</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts & Analysis -->
+        <div class="col-lg-9">
+            <!-- Timeframe Row -->
+            <div class="mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            <span class="me-2">Timeframe:</span>
+                            <div class="d-inline-flex gap-2">
+                                <span class="timeframe-pill" data-timeframe="15m">15m</span>
+                                <span class="timeframe-pill" data-timeframe="1h">1h</span>
+                                <span class="timeframe-pill" data-timeframe="4h">4h</span>
+                                <span class="timeframe-pill active" data-timeframe="1d">1d</span>
+                                <span class="timeframe-pill" data-timeframe="1w">1w</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary active" data-chart-type="price_with_regimes">
+                                    <i class="fas fa-chart-line me-1"></i> Price
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-chart-type="regime_distribution">
+                                    <i class="fas fa-chart-pie me-1"></i> Distribution
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-chart-type="regime_transitions">
+                                    <i class="fas fa-random me-1"></i> Transitions
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Current Regime Card -->
+            <div class="mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 id="current-asset-name">Bitcoin (BTC-USD)</h5>
+                                <div class="d-flex align-items-center mt-3">
+                                    <div>
+                                        <span class="d-block text-muted">Current Regime</span>
+                                        <div id="current-regime-badge" class="regime-badge volatile mt-2">
+                                            <i class="fas fa-bolt me-2"></i> Volatile
+                                        </div>
+                                    </div>
+                                    <div class="ms-5">
+                                        <span class="d-block text-muted">Strength</span>
+                                        <h4 id="regime-strength" class="mt-2">0.5</h4>
+                                    </div>
+                                    <div class="ms-5">
+                                        <span class="d-block text-muted">Since</span>
+                                        <h6 id="regime-start-date" class="mt-2">May 15, 2025</h6>
+                                    </div>
+                                </div>
+                                <p class="text-muted mt-3">
+                                    <i class="fas fa-info-circle me-2"></i> This asset is in a <span id="regime-description-text">volatile</span> market regime. <span id="regime-advice">Consider reducing position sizes and be cautious with new entries.</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark bg-opacity-25 h-100">
+                                    <div class="card-body">
+                                        <h6 class="mb-3">Regime-Optimized Parameters</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm mb-0">
+                                                <tbody id="regime-params-table">
+                                                    <tr>
+                                                        <td>Breakout Period</td>
+                                                        <td class="text-end"><strong>10</strong> <small class="text-muted">(+1)</small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>ATR Multiplier</td>
+                                                        <td class="text-end"><strong>1.65</strong> <small class="text-muted">(+0.15)</small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Risk/Reward</td>
+                                                        <td class="text-end"><strong>1.32</strong> <small class="text-muted">(+0.07)</small></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Volume Threshold</td>
+                                                        <td class="text-end"><strong>1.3</strong> <small class="text-muted">(+0.05)</small></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chart Card -->
+            <div class="mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div id="chart-loading" class="text-center py-5 d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">Loading chart data...</p>
+                        </div>
+                        <div id="regime-chart-container" style="height: 450px;">
+                            <img src="https://via.placeholder.com/1200x450?text=Market+Regime+Chart" class="img-fluid rounded">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Regime History Card -->
+            <div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Regime History</h5>
+                            <button class="btn btn-sm btn-outline-primary" id="export-regime-history">
+                                <i class="fas fa-download me-2"></i> Export
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Period</th>
+                                        <th>Regime</th>
+                                        <th>Strength</th>
+                                        <th>Duration</th>
+                                        <th class="text-end pe-4">Performance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="regime-history-table">
+                                    <tr>
+                                        <td class="ps-4">May 15 - Present</td>
+                                        <td><span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2">Volatile</span></td>
+                                        <td>0.50</td>
+                                        <td>5 days</td>
+                                        <td class="text-end pe-4 text-danger">-2.45%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-4">May 1 - May 14</td>
+                                        <td><span class="badge bg-success bg-opacity-10 text-success px-3 py-2">Trending</span></td>
+                                        <td>0.75</td>
+                                        <td>14 days</td>
+                                        <td class="text-end pe-4 text-success">+8.32%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-4">Apr 20 - Apr 30</td>
+                                        <td><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">Ranging</span></td>
+                                        <td>0.65</td>
+                                        <td>11 days</td>
+                                        <td class="text-end pe-4 text-success">+1.12%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize variables
+        let currentAsset = 'BTC-USD';
+        let currentTimeframe = '1d';
+        let currentRange = '1m';
+        let currentChartType = 'price_with_regimes';
+        
+        // Asset selection
+        document.querySelectorAll('.asset-select-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.asset-select-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update current asset
+                currentAsset = this.dataset.asset;
+                
+                // Update asset name in the current regime card
+                updateAssetName(currentAsset);
+                
+                // Load data for the selected asset
+                loadRegimeData();
+            });
+        });
+        
+        // Timeframe selection
+        document.querySelectorAll('.timeframe-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.timeframe-pill').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update current timeframe
+                currentTimeframe = this.dataset.timeframe;
+                
+                // Load data for the selected timeframe
+                loadRegimeData();
+            });
+        });
+        
+        // Time range selection
+        document.querySelectorAll('[data-range]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Update active state
+                document.querySelectorAll('[data-range]').forEach(i => {
+                    i.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Update current range and dropdown text
+                currentRange = this.dataset.range;
+                document.querySelector('#timeRangeDropdown').innerHTML = 
+                    `<i class="fas fa-calendar-alt me-2"></i> ${this.innerText}`;
+                
+                // Load data for the selected range
+                loadRegimeData();
+            });
+        });
+        
+        // Chart type selection
+        document.querySelectorAll('[data-chart-type]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('[data-chart-type]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update current chart type
+                currentChartType = this.dataset.chartType;
+                
+                // Load chart data
+                loadChartData();
+            });
+        });
+        
+        // Refresh button
+        document.querySelector('#refresh-data-btn').addEventListener('click', function() {
+            loadRegimeData(true);
+        });
+        
+        // Helper: Update asset name
+        function updateAssetName(asset) {
+            let assetNames = {
+                'BTC-USD': 'Bitcoin (BTC-USD)',
+                'ETH-USD': 'Ethereum (ETH-USD)',
+                'SPY': 'S&P 500 ETF (SPY)',
+                'EURUSD=X': 'EUR/USD Forex'
+            };
+            
+            document.querySelector('#current-asset-name').textContent = assetNames[asset] || asset;
+        }
+        
+        // Load regime data
+        function loadRegimeData(forceRefresh = false) {
+            // Show loading indicators
+            document.querySelector('#chart-loading').classList.remove('d-none');
+            
+            // In a real implementation, this would make API calls to fetch the regime data
+            // For now, we'll simulate the API calls with timeout
+            
+            // This would call:
+            // 1. /api/v1/market-regimes/current/{asset}/{timeframe}
+            // 2. /api/v1/market-regimes/history/{asset}/{timeframe}?time_range={range}
+            
+            setTimeout(() => {
+                // Update regime data with sample data
+                updateRegimeData({
+                    regime: 'volatile',
+                    strength: 0.5,
+                    start_date: '2025-05-15',
+                    parameters: {
+                        breakout_period: 10,
+                        atr_multiplier: 1.65,
+                        min_rr_ratio: 1.32,
+                        volume_threshold: 1.3
+                    }
+                });
+                
+                // Load chart data
+                loadChartData();
+                
+                // Hide loading indicators
+                document.querySelector('#chart-loading').classList.add('d-none');
+            }, 500);
+        }
+        
+        // Load chart data
+        function loadChartData() {
+            // This would call:
+            // /api/v1/market-regimes/visualization/{asset}/{timeframe}?time_range={range}&chart_type={chartType}
+            
+            // In a real implementation, this would make API calls to fetch the chart data
+            // For now, just console log the request
+            console.log(`Loading chart: ${currentAsset} ${currentTimeframe} ${currentRange} ${currentChartType}`);
+        }
+        
+        // Update regime data in the UI
+        function updateRegimeData(data) {
+            // Update regime badge
+            const regimeBadge = document.querySelector('#current-regime-badge');
+            regimeBadge.className = `regime-badge ${data.regime}`;
+            
+            let regimeIcon, regimeText;
+            switch(data.regime) {
+                case 'trending':
+                    regimeIcon = 'fa-chart-line';
+                    regimeText = 'Trending';
+                    break;
+                case 'volatile':
+                    regimeIcon = 'fa-bolt';
+                    regimeText = 'Volatile';
+                    break;
+                case 'ranging':
+                    regimeIcon = 'fa-exchange-alt';
+                    regimeText = 'Ranging';
+                    break;
+                default:
+                    regimeIcon = 'fa-question-circle';
+                    regimeText = 'Unknown';
+            }
+            
+            regimeBadge.innerHTML = `<i class="fas ${regimeIcon} me-2"></i> ${regimeText}`;
+            
+            // Update strength
+            document.querySelector('#regime-strength').textContent = data.strength;
+            
+            // Update start date
+            const startDate = new Date(data.start_date);
+            document.querySelector('#regime-start-date').textContent = startDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            // Update description text
+            document.querySelector('#regime-description-text').textContent = data.regime;
+            
+            // Update advice
+            let advice;
+            switch(data.regime) {
+                case 'trending':
+                    advice = 'This is a good time for trend-following strategies. Consider longer holding periods.';
+                    break;
+                case 'volatile':
+                    advice = 'Consider reducing position sizes and be cautious with new entries.';
+                    break;
+                case 'ranging':
+                    advice = 'Range-bound markets favor mean-reversion strategies. Watch for support/resistance levels.';
+                    break;
+                default:
+                    advice = 'Unclear market conditions. Consider reducing exposure until a clearer regime emerges.';
+            }
+            document.querySelector('#regime-advice').textContent = advice;
+            
+            // Update parameters table
+            const paramsTable = document.querySelector('#regime-params-table');
+            if (data.parameters) {
+                // In a real implementation, compare with default values and show differences
+                paramsTable.innerHTML = Object.entries(data.parameters).map(([key, value]) => {
+                    const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    return `
+                        <tr>
+                            <td>${formattedKey}</td>
+                            <td class="text-end"><strong>${value}</strong></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // Initial load
+        loadRegimeData();
+    });
+</script>
+{% endblock %}

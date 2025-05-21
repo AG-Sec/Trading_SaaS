@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+  .regime-performance-table {
+    font-size: 0.9rem;
+  }
+  .performance-card {
+    transition: all 0.3s ease;
+  }
+  .performance-card:hover {
+    transform: translateY(-5px);
+  }
+  .performance-metric {
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+  .performance-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--secondary-color);
+  }
+  .results-container {
+    min-height: 400px;
+  }
+  .equity-chart-container {
+    height: 400px;
+    position: relative;
+  }
+  .params-table {
+    font-size: 0.9rem;
+  }
+  .strategy-description {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1>Regime-Aware Backtesting</h1>
+      <p class="lead">Backtest trading strategies with regime-specific parameters for optimized performance.</p>
+    </div>
+  </div>
+
+  <!-- Backtest Form -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Backtest Configuration</h5>
+        </div>
+        <div class="card-body">
+          <form id="backtest-form">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="asset-select" class="form-label">Asset</label>
+                <select class="form-select" id="asset-select" name="asset">
+                  <option value="BTC-USD">Bitcoin (BTC-USD)</option>
+                  <option value="ETH-USD">Ethereum (ETH-USD)</option>
+                  <option value="SPY">S&P 500 (SPY)</option>
+                  <option value="QQQ">Nasdaq 100 (QQQ)</option>
+                  <option value="AAPL">Apple (AAPL)</option>
+                  <option value="MSFT">Microsoft (MSFT)</option>
+                  <option value="AMZN">Amazon (AMZN)</option>
+                  <option value="TSLA">Tesla (TSLA)</option>
+                  <option value="EURUSD=X">EUR/USD</option>
+                  <option value="GC=F">Gold Futures</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="timeframe-select" class="form-label">Timeframe</label>
+                <select class="form-select" id="timeframe-select" name="timeframe">
+                  <option value="1d">Daily (1d)</option>
+                  <option value="4h">4 Hour (4h)</option>
+                  <option value="1h">1 Hour (1h)</option>
+                  <option value="15m">15 Min (15m)</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="strategy-select" class="form-label">Strategy</label>
+                <select class="form-select" id="strategy-select" name="strategy">
+                  <option value="breakout">Breakout</option>
+                  <option value="trend_following">Trend Following</option>
+                  <option value="mean_reversion">Mean Reversion</option>
+                  <option value="volatility_breakout">Volatility Breakout</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="time-range-select" class="form-label">Time Range</label>
+                <select class="form-select" id="time-range-select" name="time_range">
+                  <option value="1m">1 Month</option>
+                  <option value="3m">3 Months</option>
+                  <option value="6m">6 Months</option>
+                  <option value="1y" selected>1 Year</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+              </div>
+              <div class="col-md-3 d-flex">
+                <div class="form-check form-switch mt-4 me-4">
+                  <input class="form-check-input" type="checkbox" id="adaptive-params" name="use_adaptive_params" checked>
+                  <label class="form-check-label" for="adaptive-params">Adaptive Parameters</label>
+                </div>
+                <div class="d-flex align-items-end">
+                  <button type="submit" class="btn btn-primary w-100">Run Backtest</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Custom date range (hidden by default) -->
+            <div class="row mt-3" id="custom-date-container" style="display: none;">
+              <div class="col-md-4">
+                <label for="start-date" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="start-date" name="start_date">
+              </div>
+              <div class="col-md-4">
+                <label for="end-date" class="form-label">End Date</label>
+                <input type="date" class="form-control" id="end-date" name="end_date">
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backtest Results -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Backtest Results</h5>
+        </div>
+        <div class="card-body">
+          <div class="results-container" id="results-container">
+            <div class="text-center p-5">
+              <p class="text-muted">Configure and run a backtest to see results</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide custom date range based on selection
+    const timeRangeSelect = document.getElementById('time-range-select');
+    const customDateContainer = document.getElementById('custom-date-container');
+    
+    timeRangeSelect.addEventListener('change', function() {
+      if (this.value === 'custom') {
+        customDateContainer.style.display = 'flex';
+      } else {
+        customDateContainer.style.display = 'none';
+      }
+    });
+    
+    // Strategy descriptions
+    const strategyDescriptions = {
+      'breakout': 'This strategy identifies and trades breakouts from key support and resistance levels, using volatility-adjusted stops and targets.',
+      'trend_following': 'A trend-following strategy based on moving average crossovers, with momentum filters to avoid false signals in choppy markets.',
+      'mean_reversion': 'Identifies overbought and oversold conditions using oscillators and Bollinger Bands, taking counter-trend positions with tight risk management.',
+      'volatility_breakout': 'Targets high-volatility breakouts after periods of low volatility, using ATR-based position sizing and trailing stops.'
+    };
+    
+    // Handle strategy change
+    const strategySelect = document.getElementById('strategy-select');
+    strategySelect.addEventListener('change', function() {
+      const strategy = this.value;
+      const strategyDescription = document.getElementById('strategy-description');
+      if (strategyDescription) {
+        strategyDescription.textContent = strategyDescriptions[strategy];
+      }
+    });
+    
+    // Handle backtest form submission
+    const backtestForm = document.getElementById('backtest-form');
+    
+    backtestForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      runBacktest();
+    });
+    
+    // Function to run backtest
+    function runBacktest() {
+      const asset = document.getElementById('asset-select').value;
+      const timeframe = document.getElementById('timeframe-select').value;
+      const strategy = document.getElementById('strategy-select').value;
+      const timeRange = document.getElementById('time-range-select').value;
+      const useAdaptiveParams = document.getElementById('adaptive-params').checked;
+      
+      // Show loading state
+      document.getElementById('results-container').innerHTML = `
+        <div class="text-center p-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3">Running backtest for ${asset} (${timeframe})...</p>
+          <p class="text-muted">This may take a moment depending on the amount of data to process.</p>
+        </div>
+      `;
+      
+      // Build URL
+      let backtestUrl = `/api/v1/market-regimes/backtest/${asset}/${timeframe}?strategy_name=${strategy}&time_range=${timeRange}&use_adaptive_params=${useAdaptiveParams}`;
+      
+      if (timeRange === 'custom') {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        
+        if (startDate) {
+          backtestUrl += `&start_date=${startDate}T00:00:00`;
+        }
+        
+        if (endDate) {
+          backtestUrl += `&end_date=${endDate}T23:59:59`;
+        }
+      }
+      
+      // Fetch backtest results
+      fetch(backtestUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          displayBacktestResults(data);
+        })
+        .catch(error => {
+          console.error('Error running backtest:', error);
+          document.getElementById('results-container').innerHTML = `
+            <div class="alert alert-danger">
+              <h5>Error running backtest</h5>
+              <p>${error.message || 'An unknown error occurred'}</p>
+            </div>
+          `;
+        });
+    }
+    
+    // Function to display backtest results
+    function displayBacktestResults(data) {
+      const performance = data.overall_performance;
+      const regimePerformance = data.regime_performance;
+      
+      // Format date strings
+      const startDate = new Date(data.start_date).toLocaleDateString();
+      const endDate = new Date(data.end_date).toLocaleDateString();
+      
+      // Create performance metrics HTML
+      let metricsHTML = `
+        <div class="row mb-4">
+          <div class="col-md-7">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4>${data.asset} - ${data.strategy_name.replace('_', ' ')} Strategy</h4>
+              <span class="badge ${performance.total_return_pct >= 0 ? 'bg-success' : 'bg-danger'}">
+                ${performance.total_return_pct >= 0 ? 'Profitable' : 'Unprofitable'}
+              </span>
+            </div>
+            <p class="strategy-description">${strategyDescriptions[data.strategy_name]}</p>
+            <div class="row">
+              <div class="col-md-6">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Time Period
+                    <span>${startDate} to ${endDate}</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Timeframe
+                    <span>${data.timeframe}</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Parameter Mode
+                    <span>${data.use_adaptive_params ? 'Adaptive (Regime-Based)' : 'Fixed'}</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Total Trades
+                    <span>${performance.total_trades}</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Win Rate
+                    <span>${(performance.win_rate).toFixed(2)}%</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Profit Factor
+                    <span>${performance.profit_factor.toFixed(2)}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="row">
+              <div class="col-6">
+                <div class="card performance-card bg-primary text-white">
+                  <div class="card-body text-center">
+                    <div class="performance-metric">${performance.total_return_pct.toFixed(2)}%</div>
+                    <div class="performance-label">Total Return</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="card performance-card bg-danger text-white">
+                  <div class="card-body text-center">
+                    <div class="performance-metric">${performance.max_drawdown.toFixed(2)}%</div>
+                    <div class="performance-label">Max Drawdown</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 mt-3">
+                <div class="card performance-card">
+                  <div class="card-body text-center">
+                    <div class="performance-metric">${performance.sharpe_ratio.toFixed(2)}</div>
+                    <div class="performance-label">Sharpe Ratio</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 mt-3">
+                <div class="card performance-card">
+                  <div class="card-body text-center">
+                    <div class="performance-metric">$${performance.average_return_per_trade.toFixed(2)}</div>
+                    <div class="performance-label">Avg. Return/Trade</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Equity curve and regime performance visualization
+      let visualizationHTML = `
+        <div class="row mb-4">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">Equity Curve with Market Regimes</h5>
+              </div>
+              <div class="card-body">
+                ${data.regime_performance_image ? 
+                  `<img src="data:image/png;base64,${data.regime_performance_image}" class="img-fluid" alt="Equity curve with market regimes">` : 
+                  `<div class="alert alert-warning">Equity curve visualization not available</div>`
+                }
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">Market Regime Performance</h5>
+              </div>
+              <div class="card-body">
+                <table class="table table-sm regime-performance-table">
+                  <thead>
+                    <tr>
+                      <th>Regime</th>
+                      <th>Trades</th>
+                      <th>Win Rate</th>
+                      <th>Return</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+      `;
+      
+      // Add rows for each regime
+      for (const [regime, metrics] of Object.entries(regimePerformance)) {
+        const formattedRegime = regime.replace('_', ' ');
+        const regimeClass = `regime-${regime.toLowerCase().replace('_', '-')}`;
+        
+        visualizationHTML += `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="regime-indicator ${regimeClass}"></div>
+                <span>${formattedRegime}</span>
+              </div>
+            </td>
+            <td>${metrics.trade_count || 0}</td>
+            <td>${metrics.win_rate ? metrics.win_rate.toFixed(2) + '%' : 'N/A'}</td>
+            <td>${metrics.total_return ? metrics.total_return.toFixed(2) + '%' : 'N/A'}</td>
+          </tr>
+        `;
+      }
+      
+      visualizationHTML += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Adaptive vs Fixed comparison
+      let comparisonHTML = '';
+      if (data.adaptive_vs_fixed_image) {
+        comparisonHTML = `
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Adaptive vs Fixed Parameters Comparison</h5>
+                </div>
+                <div class="card-body">
+                  <img src="data:image/png;base64,${data.adaptive_vs_fixed_image}" class="img-fluid" alt="Adaptive vs Fixed Parameters Comparison">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Compile final HTML
+      const finalHTML = metricsHTML + visualizationHTML + comparisonHTML;
+      
+      // Update the results container
+      document.getElementById('results-container').innerHTML = finalHTML;
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,305 @@
+<!-- Trade History Component -->
+<template id="tradeHistoryTemplate">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Trade History</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary export-trades-btn" data-portfolio-id="{{portfolioId}}">
+                    <i class="bi bi-download"></i> Export
+                </button>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-primary filter-trades-btn">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Trade metrics summary -->
+            <div class="row mb-3">
+                <div class="col-6 col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body p-2">
+                            <div class="small text-muted">Total Trades</div>
+                            <div class="fw-bold">{{trade_count}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body p-2">
+                            <div class="small text-muted">Win Rate</div>
+                            <div class="fw-bold">{{formatPercent win_rate}}%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body p-2">
+                            <div class="small text-muted">Avg Win</div>
+                            <div class="fw-bold {{profitLossClass avg_win}}">{{#if avg_win}}${{formatCurrency avg_win}}{{else}}$0.00{{/if}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body p-2">
+                            <div class="small text-muted">Avg Loss</div>
+                            <div class="fw-bold {{profitLossClass avg_loss}}">{{#if avg_loss}}${{formatCurrency avg_loss}}{{else}}$0.00{{/if}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trade history table -->
+            <div class="table-responsive">
+                <table class="table table-sm table-hover trade-table">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Symbol</th>
+                            <th>Type</th>
+                            <th>Direction</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th>P/L</th>
+                            <th>P/L %</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trades-{{portfolioId}}">
+                        {{#each trades}}
+                        <tr data-trade-id="{{id}}" class="trade-row {{#if realized_profit_loss}}{{profitLossRowClass realized_profit_loss}}{{/if}}">
+                            <td>{{formatDateTime timestamp}}</td>
+                            <td>{{symbol}}</td>
+                            <td>{{trade_type}}</td>
+                            <td>
+                                {{#if direction_is_long}}
+                                <span class="badge bg-success">LONG</span>
+                                {{else}}
+                                <span class="badge bg-danger">SHORT</span>
+                                {{/if}}
+                            </td>
+                            <td>{{formatNumber quantity}}</td>
+                            <td>${{formatCurrency price}}</td>
+                            <td>${{formatCurrency total_cost}}</td>
+                            <td class="{{profitLossClass realized_profit_loss}}">
+                                {{#if realized_profit_loss}}
+                                ${{formatCurrency realized_profit_loss}}
+                                {{else}}
+                                -
+                                {{/if}}
+                            </td>
+                            <td class="{{profitLossClass realized_profit_loss_percent}}">
+                                {{#if realized_profit_loss_percent}}
+                                {{formatPercent realized_profit_loss_percent}}%
+                                {{else}}
+                                -
+                                {{/if}}
+                            </td>
+                            <td><span class="badge {{statusBadgeClass status}}">{{status}}</span></td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+            
+            {{#if trades.length}}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <span class="text-muted">Showing {{trades.length}} of {{total_trades}} trades</span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item {{#unless has_previous}}disabled{{/unless}}">
+                            <a class="page-link trade-page-link" href="#" data-page="{{prev_page}}" data-portfolio-id="{{portfolioId}}">Previous</a>
+                        </li>
+                        <!-- Page numbers would be dynamically generated -->
+                        <li class="page-item {{#unless has_next}}disabled{{/unless}}">
+                            <a class="page-link trade-page-link" href="#" data-page="{{next_page}}" data-portfolio-id="{{portfolioId}}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {{else}}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-journal-text display-4"></i>
+                <p class="mt-2">No trade history for this portfolio yet.</p>
+            </div>
+            {{/if}}
+        </div>
+    </div>
+</template>
+
+<!-- Trade Filter Modal Template -->
+<template id="tradeFilterModalTemplate">
+    <div class="modal fade" id="tradeFilterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Filter Trades</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="tradeFilterForm">
+                        <div class="mb-3">
+                            <label for="symbolFilter" class="form-label">Symbol</label>
+                            <input type="text" class="form-control" id="symbolFilter" placeholder="e.g., AAPL, BTC">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="startDateFilter" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="startDateFilter">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="endDateFilter" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="endDateFilter">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Trade Type</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="entryFilter" checked>
+                                <label class="form-check-label" for="entryFilter">Entry</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="exitFilter" checked>
+                                <label class="form-check-label" for="exitFilter">Exit</label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Direction</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="longFilter" checked>
+                                <label class="form-check-label" for="longFilter">Long</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="shortFilter" checked>
+                                <label class="form-check-label" for="shortFilter">Short</label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Outcome (for exits only)</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="profitFilter" checked>
+                                <label class="form-check-label" for="profitFilter">Profit</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="lossFilter" checked>
+                                <label class="form-check-label" for="lossFilter">Loss</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="resetTradeFiltersBtn">Reset Filters</button>
+                    <button type="button" class="btn btn-primary" id="applyTradeFiltersBtn">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Trade Details Modal Template -->
+<template id="tradeDetailsModalTemplate">
+    <div class="modal fade" id="tradeDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Trade Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Trade Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Symbol:</th>
+                                    <td id="detailSymbol"></td>
+                                </tr>
+                                <tr>
+                                    <th>Type:</th>
+                                    <td id="detailType"></td>
+                                </tr>
+                                <tr>
+                                    <th>Direction:</th>
+                                    <td id="detailDirection"></td>
+                                </tr>
+                                <tr>
+                                    <th>Quantity:</th>
+                                    <td id="detailQuantity"></td>
+                                </tr>
+                                <tr>
+                                    <th>Price:</th>
+                                    <td id="detailPrice"></td>
+                                </tr>
+                                <tr>
+                                    <th>Total:</th>
+                                    <td id="detailTotal"></td>
+                                </tr>
+                                <tr>
+                                    <th>Date/Time:</th>
+                                    <td id="detailDateTime"></td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td id="detailStatus"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Performance</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>P/L:</th>
+                                    <td id="detailPL"></td>
+                                </tr>
+                                <tr>
+                                    <th>P/L %:</th>
+                                    <td id="detailPLPercent"></td>
+                                </tr>
+                                <tr>
+                                    <th>R Multiple:</th>
+                                    <td id="detailRMultiple"></td>
+                                </tr>
+                                <tr>
+                                    <th>Holding Period:</th>
+                                    <td id="detailHoldingPeriod"></td>
+                                </tr>
+                                <tr>
+                                    <th>Market Regime:</th>
+                                    <td id="detailMarketRegime"></td>
+                                </tr>
+                                <tr>
+                                    <th>Strategy:</th>
+                                    <td id="detailStrategy"></td>
+                                </tr>
+                                <tr>
+                                    <th>Tags:</th>
+                                    <td id="detailTags"></td>
+                                </tr>
+                                <tr>
+                                    <th>Notes:</th>
+                                    <td id="detailNotes"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

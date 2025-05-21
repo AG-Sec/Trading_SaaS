@@ -1,0 +1,10 @@
+pytest==7.4.0
+pytest-html==4.0.2
+pytest-cov==4.1.0
+matplotlib==3.7.2
+pandas==2.0.3
+numpy==1.24.3
+freezegun==1.2.2  # For mocking dates in tests
+pytest-mock==3.11.1
+pytest-xdist==3.3.1  # For parallel test execution
+pytest-timeout==2.1.0  # To catch hanging tests

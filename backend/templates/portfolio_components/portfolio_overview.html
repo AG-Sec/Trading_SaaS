@@ -1,0 +1,78 @@
+<!-- Portfolio Overview Component -->
+<template id="portfolioOverviewTemplate">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{name}}</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-primary edit-portfolio-btn" data-portfolio-id="{{id}}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-portfolio-btn" data-portfolio-id="{{id}}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">{{description}}</p>
+            <div class="portfolio-metrics">
+                <div class="metric-card">
+                    <div class="metric-title">Current Value</div>
+                    <div class="metric-value">${{formatCurrency current_value}}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Cash Balance</div>
+                    <div class="metric-value">${{formatCurrency cash_balance}}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Profit/Loss</div>
+                    <div class="metric-value {{profitLossClass total_profit_loss}}">${{formatCurrency total_profit_loss}}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Daily P/L</div>
+                    <div class="metric-value {{profitLossClass daily_profit_loss}}">${{formatCurrency daily_profit_loss}}</div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">Performance Metrics</div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Win Rate:</span>
+                                <span>{{formatPercent win_rate}}%</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Profit Factor:</span>
+                                <span>{{formatNumber profit_factor}}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Active Positions:</span>
+                                <span>{{position_count}}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Created:</span>
+                                <span>{{formatDate created_at}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">Allocation</div>
+                        <div class="card-body text-center">
+                            <canvas class="allocation-chart" data-portfolio-id="{{id}}" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <button class="btn btn-primary view-portfolio-btn" data-portfolio-id="{{id}}" data-bs-toggle="tab" data-bs-target="#portfolio-{{id}}">
+                    View Details
+                </button>
+                <button class="btn btn-outline-primary update-prices-btn" data-portfolio-id="{{id}}">
+                    <i class="bi bi-arrow-repeat"></i> Update Prices
+                </button>
+            </div>
+        </div>
+    </div>
+</template>

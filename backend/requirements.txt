@@ -1,0 +1,31 @@
+# FastAPI and related
+fastapi
+uvicorn[standard] # Includes gunicorn, ujson, httptools, etc.
+pydantic[email]>=1.10.8  # For email validation
+python-dotenv
+python-multipart  # For form data handling in FastAPI
+
+# Authentication and Security
+python-jose[cryptography]  # For JWT tokens
+passlib[bcrypt]  # For password hashing
+cryptography>=41.0.3  # For encryption
+
+# Data handling and Financial Libraries
+pandas
+yfinance
+TA-Lib # Python wrapper for the TA-Lib C library
+
+# Database ORM
+sqlalchemy>=2.0.0  # For database models
+# psycopg2-binary  # If using PostgreSQL (uncomment for production)
+# asyncpg  # If using PostgreSQL with async (uncomment for production)
+
+# e.g., for Redis
+# redis
+
+# e.g., for notifications
+# python-telegram-bot
+
+# Testing libraries
+# pytest
+# httpx # For testing FastAPI endpoints
